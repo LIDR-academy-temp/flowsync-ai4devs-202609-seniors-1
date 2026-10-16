@@ -80,7 +80,49 @@ No escribas todavía el resultado en ningún archivo. Muéstrame primero el aná
 **Herramienta:** Claude Code
 
 ```
-XXX
+Quiero refinar únicamente la columna "Qué harías con ella" de mi auditoría.
+
+No vuelvas a auditar las reglas.
+No cambies los veredictos.
+No inventes nueva evidencia.
+No modifiques ninguna otra columna.
+
+Para cada una de las cinco reglas:
+
+1. Mantén una de estas tres decisiones exactas:
+   - dejarla
+   - borrarla
+   - convertirla en una comprobación automática
+
+2. Justifica la decisión en una frase breve.
+
+3. Si la decisión es "convertirla en una comprobación automática", indica cuál sería el mecanismo más viable y determinista para este repositorio:
+   - hook local / hook de Claude
+   - hook de Git
+   - test
+   - script de validación
+   - CI / GitHub Actions
+   - otro mecanismo determinista, si encaja mejor
+
+4. Si solo una parte de la regla puede automatizarse, indícalo explícitamente y separa:
+   - qué parte puede hacerse determinista;
+   - qué parte debe seguir en CLAUDE.md porque requiere contexto o criterio.
+
+5. Si la decisión es "dejarla", explica por qué no sería adecuado intentar automatizarla completamente.
+
+6. Si la decisión es "borrarla", explica qué la hace redundante o de poco valor.
+
+Ten en cuenta estas ideas del módulo:
+- una regla escrita en CLAUDE.md es una instrucción, no una garantía;
+- conviene automatizar lo mecánico y comprobable;
+- no hay que fingir que una comprobación determinista puede validar algo que requiere criterio;
+- si algo debe bloquearse, es preferible una regla determinista a dejar el bloqueo exclusivamente en manos del modelo.
+
+Devuélveme una tabla con estas columnas:
+
+| Regla | Decisión | Justificación | Mecanismo más viable | Parte que seguiría requiriendo criterio |
+
+Sé concreto: una o dos frases por celda como máximo.
 ```
 
 **Qué salió:** refinó las decisiones sin cambiar los veredictos y separó, para cada regla, la parte automatizable de la que sigue requiriendo criterio. Lo único que ha faltado ha sido que lo plasme tras su revisión bajo la tabla Parte A.2.
