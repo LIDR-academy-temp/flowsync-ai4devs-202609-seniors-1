@@ -13,6 +13,8 @@
     "build": "node ace build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
+    "openapi:generate": "node ace openapi:generate",
+    "openapi:check": "node scripts/check_openapi.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
@@ -70,6 +72,11 @@
     "better-sqlite3": "^12.10.0",
     "luxon": "^3.7.2",
     "reflect-metadata": "^0.2.2"
+  },
+  "overrides": {
+    "@adonisjs/ace": {
+      "jsonschema": "1.4.1"
+    }
   },
   "hotHook": {
     "boundaries": [
