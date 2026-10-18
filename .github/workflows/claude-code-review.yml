@@ -1,0 +1,90 @@
+name: Claude code review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Listar los ficheros que cambia el PR
+        id: diff
+        run: |
+          files=$(git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}")
+          {
+            echo "files<<EOF_FILES"
+            echo "$files"
+            echo "EOF_FILES"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Revisión con Claude Code
+        id: review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Alternativa con clave de API de la consola, en vez de la línea de arriba:
+          # anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            TÍTULO: ${{ github.event.pull_request.title }}
+
+            Ficheros que cambia este PR:
+            ${{ steps.diff.outputs.files }}
+
+            Actúa como el revisor definido en `.claude/agents/adversarial-reviewer.md`:
+            léelo primero, es tu calibración (objetivo, qué buscar, cómo priorizar). Léelo
+            con la herramienta Read antes que ningún otro fichero.
+
+            No tienes Bash ni ninguna herramienta de escritura: solo Read, Grep y Glob. Eso
+            significa que no puedes correr `git diff` ni `gh pr diff` — la lista de ficheros
+            de arriba ya es el cambio. Lee cada uno de esos ficheros, y los requisitos de
+            `openspec/specs/<capability>/spec.md` que les correspondan, directamente con
+            Read/Grep/Glob. No redirijas la salida de ninguna herramienta a un fichero
+            temporal para leerla después: lee la salida directa de la herramienta en el
+            mismo turno en que la pides, cada intento con una herramienta no permitida
+            cuesta un turno de los pocos que tienes.
+
+            Devuelve los hallazgos en el formato del esquema: prioridad, fichero, y la
+            evidencia o el scenario que se rompe. Si no encuentras nada, decláralo
+            explícitamente en vez de dejar la lista vacía sin explicación.
+          claude_args: |
+            --model sonnet
+            --effort medium
+            --max-turns 40
+            --allowedTools Read,Grep,Glob
+            --json-schema '{"type":"object","properties":{"findings":{"type":"array","items":{"type":"object","properties":{"severity":{"type":"string","enum":["critico","alto","medio"]},"file":{"type":"string"},"evidence":{"type":"string"},"summary":{"type":"string"}},"required":["severity","file","summary"]}},"summary":{"type":"string"}},"required":["findings","summary"]}'
+
+      - name: Publicar los hallazgos como comentario en el PR
+        if: always() && steps.review.outputs.structured_output
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          output='${{ steps.review.outputs.structured_output }}'
+          count=$(echo "$output" | jq '.findings | length')
+          body=$(
+            {
+              echo "## Revisión de Claude Code"
+              echo
+              echo "$(echo "$output" | jq -r '.summary')"
+              echo
+              if [ "$count" -gt 0 ]; then
+                echo "$output" | jq -r '.findings[] | "- **\(.severity | ascii_upcase)** `\(.file)`: \(.summary)" + (if .evidence then "\n  \n  \(.evidence)" else "" end)'
+              else
+                echo "Sin hallazgos."
+              fi
+            }
+          )
+          gh pr comment "${{ github.event.pull_request.number }}" --body "$body"
