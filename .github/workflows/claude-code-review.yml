@@ -45,8 +45,10 @@ jobs:
             ${{ steps.diff.outputs.files }}
 
             Actúa como el revisor definido en `.claude/agents/adversarial-reviewer.md`:
-            léelo primero, es tu calibración (objetivo, qué buscar, cómo priorizar). Léelo
-            con la herramienta Read antes que ningún otro fichero.
+            léelo primero, es tu calibración (objetivo, qué buscar, cómo priorizar), y
+            luego lee `REVIEW.md` en la raíz —qué es grave aquí y qué es solo sugerencia,
+            el tope de sugerencias menores y dónde no reportar—. Lee ambos con la
+            herramienta Read antes que ningún otro fichero.
 
             No tienes Bash ni ninguna herramienta de escritura: solo Read, Grep y Glob. Eso
             significa que no puedes correr `git diff` ni `gh pr diff` — la lista de ficheros
