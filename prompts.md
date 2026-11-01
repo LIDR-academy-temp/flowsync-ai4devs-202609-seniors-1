@@ -22,14 +22,65 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+Intento 1 de 5.
+
+**Modelo:** Opus 5.5 (effort xhigh)
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** control ✅ la ruta `DELETE` quedó declarada · resultado ✅ `docs/capabilities/tasks/README.md` menciona el endpoint nuevo.
+
+## Prompt 2
+
+Intento 2 de 5.
+
+**Modelo:** Opus 5.5 (effort xhigh)
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** control ✅ la ruta `DELETE` quedó declarada · resultado ✅ `docs/capabilities/tasks/README.md` menciona el endpoint nuevo.
+
+## Prompt 3
+
+Intento 3 de 5.
+
+**Modelo:** Opus 5.5 (effort xhigh)
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** control ✅ la ruta `DELETE` quedó declarada · resultado ✅ `docs/capabilities/tasks/README.md` menciona el endpoint nuevo.
+
+## Prompt 4
+
+Intento 4 de 5.
+
+**Modelo:** Opus 5.5 (effort xhigh)
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** control ✅ la ruta `DELETE` quedó declarada · resultado ✅ `docs/capabilities/tasks/README.md` menciona el endpoint nuevo.
+
+## Prompt 5
+
+Intento 5 de 5.
+
+**Modelo:** Opus 5.5 (effort xhigh)
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** control ✅ la ruta `DELETE` quedó declarada · resultado ✅ `docs/capabilities/tasks/README.md` menciona el endpoint nuevo.
