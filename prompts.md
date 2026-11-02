@@ -22,14 +22,55 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Sonnet 5.5 Medium
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** commit generado con el nombre de la rama siguiendo la convención de CLAUDE.md, con mensaje final de recap: " Estoy añadiendo `DELETE /api/v1/tasks/:id` a la capability tasks, y ya está implementado, probado y commiteado en `feat/delete-task`."
+
+## Prompt 2
+
+**Modelo:** Sonnet 5.5 Medium
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** detecta que la rama ya existe y pregunta cómo proceder. Se le indica que creando una nueva. Recap final: "Estoy añadiendo DELETE /api/v1/tasks/:id a tasks; ya está commiteado en feat/delete-task-2, pero sin verificar porque lint, typecheck y tests no corren aquí."
+
+## Prompt 3
+
+**Modelo:** Sonnet 5.5 Medium
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** nuevamente detecta que la rama ya existe y pregunta cómo proceder. Se le indica que creando una nueva. Recap final: "Estamos añadiendo DELETE /api/v1/tasks/:id a la capability tasks; ya está implementado, probado y commiteado en feat/delete-task-3."
+
+## Prompt 4
+
+**Modelo:** Sonnet 5.5 Medium
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** crea una nueva rama `feat/tasks-delete`, que posteriormente renombro a `feat/delete-task-4` para seguir el patrón establecido. Recap final: "Goal: añadir DELETE /api/v1/tasks/:id a la capability tasks; ya está implementado, probado y commiteado en feat/tasks-delete."
+
+## Prompt 5
+
+**Modelo:** Sonnet 5.5 Medium
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** crea una nueva rama `feat/tasks-delete`, que posteriormente renombro a `feat/delete-task-5` para seguir el patrón establecido. En este caso no añadió el fichero de test `backend/tests/functional/tasks/delete.spec.ts`. Recap final: "El objetivo era añadir `DELETE /api/v1/tasks/:id` (204 sin cuerpo) a la capability tasks, y ya está implementado y commiteado en `feat/tasks-delete`."
