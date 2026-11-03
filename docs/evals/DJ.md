@@ -56,7 +56,7 @@ Esto confirma que las reglas descriptivas almacenadas en archivos de sistema com
 
 **Justificación:** Mantenimiento defensivo del harness. Confiar en la adhesión pasiva de un LLM a un archivo de configuración de contexto produce un comportamiento probabilístico e inestable. En un pipeline de producción, una regla no verificada mediante código es equivalente a una regla inexistente. La solución óptima es implementar un script que compare en el commit los archivos modificados bajo `src/capabilities/` y fuerce un fallo en la integración si `docs/capabilities/<capability>/README.md` no presenta cambios en el mismo commit.
 
-### 3. Limitaciones de la Medición
+### 3. Limitaciones de la Medición 
 Esta evaluación presenta las siguientes limitaciones metodológicas:
 
 1. **Evaluación de presencia vs. calidad:** La comprobación de *Resultado* únicamente evalúa la existencia de cambios en el archivo `README.md`, pero no valida si la documentación añadida es precisa, si sigue el estándar técnico del proyecto o si omite parámetros del endpoint.
