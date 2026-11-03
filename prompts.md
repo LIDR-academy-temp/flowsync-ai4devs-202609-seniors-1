@@ -26,10 +26,53 @@ Borra el ejemplo de abajo cuando escribas el primero.
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks."
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** DELETE /api/v1/tasks/:id ya funciona: borra la tarea y devuelve 204 sin cuerpo.
+
+## Prompt 2
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks."
+```
+
+**Qué salió:** DELETE /api/v1/tasks/:id ya funciona: borra la tarea y devuelve 204 sin cuerpo.
+
+## Prompt 3
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks."
+```
+
+**Qué salió:** DELETE /api/v1/tasks/:id ya funciona: borra la tarea y devuelve 204 sin cuerpo.
+
+## Prompt 4
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks."
+```
+
+**Qué salió:** DELETE /api/v1/tasks/:id ya funciona: borra la tarea y devuelve 204 sin cuerpo.
+
+## Prompt 5
+
+**Modelo:** Opus 1M xHigh
+**Herramienta:** Claude Code
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks."
+```
+
+**Qué salió:** DELETE /api/v1/tasks/:id ya funciona: borra la tarea y devuelve 204 sin cuerpo..
+
+Me ha salido exactamente lo mismo en los 5 con sessiones distintas
