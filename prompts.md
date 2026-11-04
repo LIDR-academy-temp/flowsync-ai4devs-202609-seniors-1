@@ -157,17 +157,19 @@ Estoy cerrando la petición con el commit del endpoint de borrado.
 He añadido DELETE /api/v1/tasks/:id y lo he commiteado en la rama feat/delete-task (1f25b85). La rama la creé yo, porque estabas en s8/start.
 
 - Controlador: TasksController.destroy en backend/app/controllers/tasks_controller.ts busca la tarea con findOrFail y la borra. Responde 204 sin cuerpo, o 404 si no existe. Lleva las anotaciones OpenAPI para 204, 401 y 404.
-- Ruta: router.delete(':id', [controllers.Tasks, 'destroy']) en backend/start/routes.ts, dentro del grupo tasks. Hereda middleware.auth(), así que sin tokeREADME: docs/capabilities/tasks/README.md la de endpoints y el recuento de operacionesy códigos actualizado.
+- Ruta: router.delete(':id', [controllers.Tasks, 'destroy']) en backend/start/routes.ts, dentro del grupo tasks. Hereda middleware.auth(), así que sin token da 401.
+- README: docs/capabilities/tasks/README.md tiene la fila nueva en la tabla de endpoints y el recuento de operaciones y códigos actualizado.
 
-Pasan typecheck, lint y los 23 tests existen ruta nueva. No he escrito un test ni llamado al endpoint con curl, así que el 204 no está comprobado de extremo a extremo.
+Pasan typecheck, lint y los 23 tests existentes, y list:routes muestra la ruta nueva. No he escrito un test ni llamado al endpoint con curl, así que el 204 no está comprobado de extremo a extremo.
 
-Ni la spec de openspec/specs/tasks/spec.md nos he tocado. Este último no cambió al
-regenerarse con los tests.
+Ni la spec de openspec/specs/tasks/spec.md ni el registro de .adonisjs/ los he tocado. Este último no cambió al regenerarse con los tests.
 
-El borrado es definitivo y cualquier cuenta uier tarea, sea o no la responsable. Lo hiceasí por coherencia con el cambio de estado.
-Todavía no he abierto el PR ni pasado el advDE.md eso va una sola vez al terminar launidad de trabajo; dime cuándo la das por te
+El borrado es definitivo y cualquier cuenta con sesión puede borrar cualquier tarea, sea o no la responsable. Lo hice así por coherencia con el cambio de estado.
+
+Todavía no he abierto el PR ni pasado el adversarial-reviewer. Según CLAUDE.md eso va una sola vez al terminar la unidad de trabajo; dime cuándo la das por terminada.
 
 ✻ Worked for 1m 0s · done 12:18 PM
+
 ```
 
 ---
@@ -185,7 +187,7 @@ Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una
 ```
 Estoy en s8/start, así que creo una rama de trabajo antes de tocar código y miro el código existente.
 
-  Read 1 file, listed 1 directory, ran 2 shell commands
+  Read 1 file, listed 1 directory, ran 1 shell command
 
 La spec no regula el borrado de tareas; implemento lo pedido.
 
@@ -198,13 +200,13 @@ Successfully loaded skill
 
 DELETE /api/v1/tasks/:id ya existe: borra la tarea y responde 204 sin cuerpo. Lo dejé commiteado (7de77aa) en la rama nueva feat/delete-task, porque partía de s8/start.
 
-El borrado está en TasksController.destroy,  las demás de tasks, bajo middleware.auth().Si el id no existe devuelve 404. Como con elba quién es el responsable: cualquier cuentacon sesión puede borrar cualquier tarea.
+El borrado está en TasksController.destroy, con la ruta declarada junto a las demás de tasks, bajo middleware.auth(). Si el id no existe devuelve 404. Como con el cambio de estado, no comprueba quién es el responsable: cualquier cuenta con sesión puede borrar cualquier tarea.
 
-Añadí la operación al OpenAPI (204, 401 y 404) y actualicé el README de tasks. typecheck, lint y los 23 tests existentes pasan. No escribí un test para ell contra el servidor: tasks sigue sin tests.
+Añadí la operación al OpenAPI (204, 401 y 404) y actualicé el README de tasks. typecheck, lint y los 23 tests existentes pasan. No escribí un test para el endpoint ni lo probé con curl contra el servidor: tasks sigue sin tests.
 
-La spec de tasks no menciona el borrado de tto que cubra este endpoint. Si quieres quequede en la spec, habría que proponerlo con
+La spec de tasks no menciona el borrado de tareas, así que no hay requisito que cubra este endpoint. Si quieres que quede en la spec, habría que proponerlo con OpenSpec.
 
-No he abierto el PR ni pasado el adversarialn una sola vez, al terminar la unidad detrabajo.
+No he abierto el PR ni pasado el adversarial-reviewer: según CLAUDE.md van una sola vez, al terminar la unidad de trabajo.
 
 ✻ Brewed for 1m 8s · done 12:22 PM
 ```
