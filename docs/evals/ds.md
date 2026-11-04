@@ -26,11 +26,11 @@
 
 Los cinco intentos son válidos y en los cinco el README menciona el endpoint: **5 de 5**.
 
-El control lo hice con `grep` sobre `backend/start/routes.ts`. El resultado, con `grep` sobre el README y leyendo el diff. En la línea base no había ninguna ruta `delete` ni ninguna mención a `DELETE`.
+El control se hizo con `grep` sobre `backend/start/routes.ts`. El resultado, con `grep` sobre el README y leyendo el diff. En la línea base no había ninguna ruta `delete` ni ninguna mención a `DELETE`.
 
 ### Lo que el 5 de 5 no enseña
 
-El ejercicio solo pide mirar el README, pero la regla dice más. Después revisé los diffs guardados:
+El ejercicio solo pide mirar el README, pero la regla dice más. Después se revisaron los diffs guardados:
 
 | Intento | Commit | README en el commit | `docs/api/openapi.json` | `.adonisjs/` |
 |---|---|---|---|---|
@@ -40,23 +40,28 @@ El ejercicio solo pide mirar el README, pero la regla dice más. Después revis�
 | 4 | `81e772c` | Sí | Sí | Sí |
 | 5 | `23019e0` | Sí | Sí | Sí |
 
-Si exijo la regla entera, con README y `.adonisjs/` en el mismo commit, se cumple en 3 de 5: los intentos 1, 4 y 5. Lo calculé a posteriori, así que lo tomo como una observación, no como la medida del ejercicio.
+En los intentos 1, 4 y 5 coincidieron en el commit los archivos documentales revisados: el README, `docs/api/openapi.json` y `.adonisjs/`. Eso no demuestra que se cumpliera la regla completa, porque no se validó íntegramente el contrato OpenAPI. Es una observación hecha a posteriori, no la medida del ejercicio.
 
-### Cómo se hizo y qué salió mal
+### Cómo se ejecutó
 
-- **Mi sesión manual falló.** No llegué a lanzar el encargo y no guardé el error. Antes de darme cuenta anoté una tabla de resultados que no tenía ejecuciones detrás. Al contrastarla con las evidencias no se sostenía y la descarté. Nada de este documento sale de ella.
-- **Los intentos no los lancé a mano.** Pedí a una sesión de Claude Code que los lanzara por mí, uno a uno, cada uno en una sesión nueva con `claude -p`. Esto se aparta del ejercicio: nadie aprobaba permisos y el agente trabajó con una lista cerrada de herramientas, con `git push` y `gh` denegados. Esa lista le rechazó entre 6 y 9 comandos por intento, y ninguno llegó a intentar un `push` ni un PR.
-- **El intento 3 se quedó a medias.** Pidió aprobar `curl` para regenerar el OpenAPI y no hizo commit, citando la regla. Nadie podía contestarle en ese modo. La ruta y el README estaban en el árbol de trabajo, y por eso cuenta.
-- **El intento 2 se dejó `.adonisjs/`.** Necesitaba `node ace serve`, que le fue denegado. Lo avisó en su resumen.
-- **`npm run openapi:check` falla en local.** Da `Invalid URL` con Node 24, y lo reproduje en `s8/start` limpio, así que no lo causó ningún intento. Por eso al menos tres intentos generaron `openapi.json` con un spec temporal. No he comprobado si esos documentos pasarían el CI.
-- **Añadí un paso a la restauración.** El intento 1 dejó la rama `feat/delete-task` y el siguiente podía encontrarse el trabajo hecho. Tras los tres comandos guardé cada rama en una referencia local y la borré. También saqué de `/tmp` dos carpetas que dejaron los intentos 2 y 4. Tras cada restauración, `git status -sb` mostró solo la línea de `s8/start`.
+Mi sesión manual falló antes de lanzar el encargo y no guardé el error. Una tabla que anoté sin ejecuciones detrás quedó descartada y no se usa aquí.
 
-No probé el endpoint ni repetí los tests. Los resúmenes de los agentes dicen que pasaban, pero eso no lo he verificado.
+Después, otra sesión de Claude Code ejecutó los cinco encargos uno a uno, cada uno en una sesión nueva con `claude -p` y sin intervención humana para aprobar permisos. No son intentos manuales. El agente trabajó con una lista cerrada de herramientas, con `git push` y `gh` denegados.
+
+Entre intentos se restauró el repositorio con los tres comandos del ejercicio. Además, las ramas del agente se guardaron en referencias locales y se borraron, y dos carpetas que dejaron los intentos 2 y 4 en `/tmp` se movieron a las evidencias.
+
+Tres cosas explican la segunda tabla y sus límites:
+
+- **Intento 2:** el commit no lleva `.adonisjs/` porque `node ace serve` le fue denegado.
+- **Intento 3:** no hizo commit porque se quedó esperando la aprobación de `curl`, que nadie podía dar. Cuenta porque la ruta y el README estaban en el árbol de trabajo.
+- **`npm run openapi:check`:** da `Invalid URL` con Node 24, también en `s8/start` limpio.
+
+No se probó el endpoint ni se repitieron los tests.
 
 ## Parte B: las tres líneas
 
-1. **Apuesta y resultado.** Aposté 3 de 5 y salió 5 de 5, con los cinco intentos válidos. Me quedé corto en la parte del README, aunque la regla completa se cumplió en 3 de 5.
+1. **Predicción y resultado.** Aposté 3 de 5 y salió 5 de 5, con los cinco intentos válidos. En la parte del README me quedé corto.
 
-2. **Qué haría con ese número.** No borraría la regla, porque en este encargo el README se actualizó siempre. Añadiría una comprobación en CI que falle si un PR toca rutas o controladores de una capability sin tocar su README, porque el workflow `openapi.yml` ya vigila el documento OpenAPI pero nada vigila el README. Con 5 de 5 no es urgente, pero tampoco demuestra que nunca falle, y la comprobación es barata. También reescribiría la regla: dice que no hay fichero OpenAPI que generar, mientras `docs/api/openapi.json` está versionado, y en local el comando que lo genera no funciona. Los intentos 2 y 3 tropezaron precisamente al regenerar lo que pide la regla.
+2. **Qué haría.** Mantendría la regla y añadiría una comprobación en CI que falle si un PR toca rutas o controladores de una capability sin tocar su README. El workflow `openapi.yml` ya vigila el documento OpenAPI, pero nada vigila el README, y un 5 de 5 no garantiza que no vaya a fallar.
 
-3. **Lo que no estoy midiendo.** No sé si es la regla la que hace que se actualice el README, porque no hay grupo de control sin ella. Los cinco agentes leyeron el README antes de editar, y ese archivo ya tiene una tabla de endpoints, así que quizá lo actualizarían igual. Tampoco mido si la documentación es correcta, solo que menciona el endpoint. Y son cinco ejecuciones de un único encargo, con un modelo, en modo no interactivo y sin nadie aprobando permisos, que no es como se trabaja normalmente.
+3. **Limitaciones.** No hay grupo de control sin la regla, así que no sé si el README se actualiza gracias a ella: los cinco agentes lo leyeron antes de editar y ya tiene una tabla de endpoints. Solo mido que mencione el endpoint, no que la documentación sea correcta. Y son cinco ejecuciones de un único encargo, con un modelo y en modo no interactivo.
