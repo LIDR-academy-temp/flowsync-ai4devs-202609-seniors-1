@@ -16,20 +16,60 @@ distinto, y sin este archivo no se distinguen.
 - Incluye también los que **no funcionaron**. Suelen ser los más útiles de leer.
 - `Modelo` y `Herramienta` en todos. Si cambiaste de una a otra a mitad, se nota aquí.
 
-Borra el ejemplo de abajo cuando escribas el primero.
-
 ---
+
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
-**Herramienta:** Claude Code
+**Modelo:** Opus 5.5, Claude Max, modo manual
+**Herramienta:** Claude Code 2.1.318 (Claude Code)
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** Intento 1 (modo manual, 2 min 51 s): creó la rama feat/delete-task y un commit (3fe4fe6) con destroy en TasksController, la ruta en routes.ts, tests, OpenAPI, .adonisjs y el README de tasks, sin que se le recordara la regla; al terminar ofreció abrir el PR.
+
+## Prompt 2
+
+**Modelo:** Opus 5.5, Claude Max, modo manual
+**Herramienta:** Claude Code 2.1.318 (Claude Code)
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** Intento 2 (modo manual, 2 min 49 s): creó la rama feat/tasks-delete y un commit (dba9891) con destroy en TasksController, la ruta en routes.ts, tests, OpenAPI, .adonisjs y el README de tasks, sin que se le recordara la regla. Dijo que ya existía feat/delete-task del intento anterior y que no la había tocado.
+
+## Prompt 3
+
+**Modelo:** Opus 5.5, Claude Max, modo manual
+**Herramienta:** Claude Code 2.1.318 (Claude Code)
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** Intento 3 (modo manual, 2 min 57 s): creó la rama feat/tasks-delete-endpoint y un commit (96c1c15, 8 archivos) con destroy en TasksController, la ruta en routes.ts, tests, .adonisjs y el README de tasks (tabla, reglas, tests y curl), sin que se le recordara la regla. No commiteó docs/api/openapi.json (los intentos 1 y 2 sí). Avisó de las dos ramas viejas de intentos anteriores y dijo que no las había tocado.
+
+## Prompt 4
+
+**Modelo:** Opus 5.5, Claude Max, modo manual
+**Herramienta:** Claude Code 2.1.318 (Claude Code)
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** Intento 4 (modo manual, 3 min 31 s): creó la rama feat/tasks-destroy y un commit (1029ebd, 9 archivos) con destroy en TasksController, la ruta en routes.ts, destroy.spec.ts, docs/api/openapi.json, .adonisjs y el README de tasks, sin que se le recordara la regla. Avisó de las tres ramas viejas de intentos anteriores y dijo que no las había tocado, y de que openapi:generate y openapi:check fallan con Invalid URL.
+
+## Prompt 5
+
+**Modelo:** Opus 5.5, Claude Max, modo manual
+**Herramienta:** Claude Code 2.1.318 (Claude Code)
+
+```
+Añade a la capability tasks el endpoint DELETE /api/v1/tasks/:id, que borra una tarea y devuelve 204 sin cuerpo. Impleméntalo en el controlador que ya existe y declara su ruta junto a las demás de tasks.
+```
+
+**Qué salió:** Intento 5 (modo manual, 3 min 16 s): creó la rama feat/tasks-delete-by-id y un commit (038ff02, 9 archivos) con destroy en TasksController, la ruta en routes.ts, delete.spec.ts, docs/api/openapi.json, .adonisjs y el README de tasks, sin que se le recordara la regla. Dijo que había ramas de intentos anteriores, que no las había tocado y que partió de s8/start.
