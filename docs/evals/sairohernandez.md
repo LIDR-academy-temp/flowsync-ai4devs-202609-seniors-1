@@ -17,3 +17,4 @@ En este caso no.
 Algo que tu medición no está comprobando. Identifica al menos una limitación de los resultados.
 
 No pude completar el resultado, la rama que me creo local se mantuvo la denominada feat/delete-tasks, al segundo intento como intenta crear una nueva con el mismo nombre de dice que las funcionalidades ya estan implementadas en dicha rama.
+
