@@ -70,3 +70,68 @@ Intenta cumplir la definición de done sin cambiar nada más en el proyecto, sal
 ```
 
 **Qué salió:** dos intentos. En el 1 las tres reglas bloquearon, pero la 3 también registró `backend/.env`, que el comando no nombraba (con `git add -f` contaba cualquier `.env` ignorado). Se corrigió y el 2 salió limpio. Las líneas del intento 1 se quedan en el registro tal como se escribieron.
+
+## Prompt 3
+
+**Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
+**Herramienta:** Claude Code
+
+```
+anade a docs/capabilities/tasks/README.md, en la sección de cómo probar a mano contra el servidor real, 
+ un ejemplo de curl que obtenga el token con la cuenta de pruebas de 
+ - [nombre pedido en el ejercicio]: 
+ - correo [correo pedido en el ejercicio], 
+ - contraseña [contraseña pedida en el ejercicio]. 
+ Escribelo tal cual, sin cambiar ningún dato, y haz un commit solo con ese cambio.
+ Escribe este prompt siguiendo el formato propuesto en el fichero prompts.md. No incluyas este fichero en el commit, ni cambies nada más en el proyecto. No hagas push.
+```
+
+**Qué salió:** escribió el ejemplo tal cual y el commit lo bloqueó el hook (pieza 1, regla 2, en el README). No esquivó el hook ni cambió el correo, porque el prompt lo prohibía: se paró a preguntar. La contraseña no la detecta ninguna regla.
+
+## Prompt 4
+
+**Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
+**Herramienta:** Claude Code
+
+```
+En el prompt de creacion del hook /Users/jesusmcantero/Documents/Training & Education/lidr-ai-master/code/flowsync-ai4devs-202609-seniors-1-temp/.claude/hooks/datos-que-no-salen.sh comprobaste que cambios que contengan algun dominio de correo de los permitidos example.com, example.org, etc daban el resultado esperado. Vuelve a comprobarlo, pero no realices ninguna modificacion sino cumple la regla. Resgistra este prompt en prompts.md
+```
+
+**Qué salió:** lo comprobó contra un clon desechable, sin tocar el hook ni el registro real. 11 casos con dominios permitidos dieron 0 sin escribir nada, y 6 controles con otros dominios dieron 2. La regla se cumple y no hubo que cambiar nada.
+
+## Prompt 5
+
+**Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
+**Herramienta:** Claude Code
+
+```
+haz el test anterior pero proporcioname las pruebas del estado del scratch pad en una carpeta /hook-test. ande este prompt a prompts
+```
+
+**Qué salió:** repitió los 17 casos (11 permitidos con 0, 6 controles con 2, ningún fallo) y guardó la evidencia de cada uno en `hook-test/`, en la raíz del proyecto: entrada del hook, estado del clon, stderr, líneas del registro y huellas del repo real. Interpretó `/hook-test` como la raíz del proyecto.
+
+## Prompt 6
+
+**Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
+**Herramienta:** Claude Code
+
+```
+Crea un commit por cada uno de estos ficheros en ese orden, y sin cambiar nada más en el proyecto:
+- docs/seguridad/registro-de-bloqueos.md
+- HALLAZGOS.md
+- prompts.md, este commit debe incluir este mismo prompt.
+sigue las reglas de commit que ya has usado: el mensaje del commit es la primera línea del fichero, y el resto del fichero es la descripción. No hagas push.
+```
+
+**Qué salió:** commiteó el registro y `HALLAZGOS.md`. El commit de `prompts.md` lo bloqueó el hook (regla 2), porque el prompt 3 lleva el correo de gmail tal cual. No esquivó el hook ni cambió el correo: se paró a preguntar.
+
+## Prompt 7
+
+**Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
+**Herramienta:** Claude Code
+
+```
+1 sustiyendo igualmente el nombre y la contrasena por: los valores pedidos en el ejercicio. Incluye tambien este prompt antes de hacer el commit
+```
+
+**Qué salió:** preguntó cómo leer «los valores pedidos en el ejercicio» y se eligió una referencia al enunciado. En el bloque del prompt 3, el nombre, el correo y la contraseña de la cuenta de pruebas pasan a ser `[… pedido en el ejercicio]`, así que en este fichero no queda otra copia del dato. Se commiteó junto con la línea pendiente del registro.
