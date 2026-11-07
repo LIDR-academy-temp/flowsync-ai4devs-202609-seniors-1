@@ -22,14 +22,16 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Claude Opus 5.5 (`claude-opus-5-5`)
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Actuando como experto de seguridad en desarrollo de software
+Genera el imventario de lo que es dato personal o secreto en este proyecto, y de qué lee el agente para trabajar aquí. Tres listas:
+1. - Datos personales: las tablas y columnas que guardan datos de una persona identificable (que lo lea en las migraciones, no que lo suponga) y los ficheros con ejemplos de correos o nombres
+2. - Secretos: los ficheros que llevan o pueden llevar claves, tokens o contraseñas, estén o no en el repositorio
+3. - Informacion que consulta el agente: que has leido o leeria por defecto cualquier agente ara hacer un cambio en el backend (el fichero de instrucciones del repositorio, la configuración del harness, los ficheros de entorno, la base de datos local), diciendo de cada uno si su contenido sale de tu máquina cuando trabaja contigo.
+No camibies nada en el proyecto, salvo el fichero prompt.md, que es donde se escribe este prompt siguiendo el formato propuesto en el fichero
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** inventario en tres listas sacado de las migraciones y de los ficheros; leyó del `.env` solo los nombres de las variables y de la BD solo recuentos. El prompt dice `prompt.md`, pero el fichero es `prompts.md`.
