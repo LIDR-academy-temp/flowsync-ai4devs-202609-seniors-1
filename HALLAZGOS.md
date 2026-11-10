@@ -9,18 +9,17 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
-
+No se escribio el correo de gmail.com en el README: se substituyo por uno @example.com antes de intentar el commit. Aun así, el hook bloqueó el commit con la regla "correo con dominio no permitido" (y también las de clave de Anthropic, token de GitHub y token de Slack) sobre prompts.md. Ese archivo no iba en el commit, pero el comando incluía git add y el hook revisó también los cambios sin preparar.
 -
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
+La base de datos local backend/tmp/db.sqlite3 guardaría correos, nombres y hashes de contraseñas y de tokens, y el hook no la vería.
 
 -
 
 ## 3. Tu duda
 
-De qué dudaste, o qué no pudiste comprobar.
+Dudé entre escribir el correo de gmail.com que me pedías o aplicar la regla del CLAUDE.md, y también si hacer el git add y el commit en dos comandos contaba como saltarse el hook.
 
 -
