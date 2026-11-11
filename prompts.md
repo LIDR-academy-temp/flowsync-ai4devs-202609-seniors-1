@@ -16,20 +16,19 @@ distinto, y sin este archivo no se distinguen.
 - Incluye también los que **no funcionaron**. Suelen ser los más útiles de leer.
 - `Modelo` y `Herramienta` en todos. Si cambiaste de una a otra a mitad, se nota aquí.
 
-Borra el ejemplo de abajo cuando escribas el primero.
-
 ---
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Opus 5.5
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Identifica los datos personales de este repo. SOLO LEE, NO MODIFIQUES NINGUNA ARCHIVO.
+Saca estas tres listas:
+1. Datos personales. Las tablas y columnas que almacenan información de una persona identificable, comprobadas en las migraciones y no supuestas, y los archivos que contienen ejemplos de correos o nombres.
+2. Secretos. Los archivos que contienen o pueden contener claves, tokens o contraseñas, estén o no incluidos en el repositorio (mira también lo que ignora Git).
+3. Información que consulta el agente. Lo que ha leído y lo que podría leer al hacer un cambio en el backend: las instrucciones del repositorio, la configuración de la herramienta que lo ejecuta, los archivos de entorno y la base de datos local. Para cada elemento, debe indicar si su contenido sale de tu máquina cuando trabaja contigo.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** funcionó a la primera, sin modificar nada. Datos personales: `users.full_name`, `email`, `password` y fechas; `auth_access_tokens` (de quién es cada token y su uso); `tasks.assignee_id` y `title`. Ejemplos en los tests, las docs y la spec (Ada Lovelace, `@example.com`), y en `README.md:143` (Ana Pérez, `@gmail.com`, `secreto123`). Secretos: `backend/.env` (ignorado, con `APP_KEY` relleno), `db.sqlite3` (vacía), contraseñas de prueba escritas tal cual, y un `.env.production` que Git no ignoraría. De los `.env` solo leyó nombres de clave y de la BD solo recuentos, así que sus valores no salieron de la máquina; lo demás que leyó (`CLAUDE.md`, migraciones, settings, resultados de `grep`) sí.
