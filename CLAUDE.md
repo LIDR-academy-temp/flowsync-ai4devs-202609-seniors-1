@@ -131,7 +131,7 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 ## Reglas de proceso
 - La rama es por unidad de trabajo, no por petición. Antes de tocar código, mira en qué rama estás: si ya es una rama de trabajo —cualquiera que no sea `main` ni una `sN/*`—, sigue en ella en vez de crear otra. Solo desde `main` o desde una `sN/*` se crea una nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main` ni en una `sN/*`.
 - El commit sí es por petición: al cerrar cada una, usar la skill `/commit`.
-- Antes de cada `git commit` se ejecuta el hook `.claude/hooks/datos-que-no-salen.sh` (`PreToolUse`, solo en Claude Code). Bloquea el commit si lo que va a entrar contiene una clave con forma reconocible, un correo de un dominio que no sea de ejemplo (`example.com`, `example.org`, `example.net` o `github.com`) o un archivo `.env`. Ante un bloqueo:
+- Antes de cada `git commit` se ejecuta el hook `.claude/hooks/datos-que-no-salen.sh` (`PreToolUse`, solo en el Bash de Claude Code: no cubre los commits desde la terminal ni formas como `git -C … commit`). Revisa lo preparado y, si el mismo comando lleva `git add` (también con `-f`) o es un `git commit -a`, lo que esos van a meter. Bloquea el commit si encuentra una clave con forma reconocible, un correo de un dominio que no sea de ejemplo (`example.com`, `example.org`, `example.net` o `github.com`) o un archivo `.env`. Ante un bloqueo:
   - No desactivarlo ni saltárselo.
   - Sustituir el dato por uno inventado que cumpla las reglas y volver a intentar el commit.
   - Incluir `docs/seguridad/registro-de-bloqueos.md` en ese commit junto con el resto del trabajo: la línea que añade el hook es la evidencia del bloqueo.

@@ -17,7 +17,9 @@ case "$cmd" in
 esac
 
 cwd=$(jq -r '.cwd // empty' <<<"$input")
-root=$(git -C "${cwd:-${CLAUDE_PROJECT_DIR:-.}}" rev-parse --show-toplevel 2>/dev/null) || exit 0
+cwd=${cwd:-${CLAUDE_PROJECT_DIR:-.}}
+root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || exit 0
+prefix=$(git -C "$cwd" rev-parse --show-prefix 2>/dev/null)  # cwd respecto a la raíz
 cd "$root" || exit 0
 
 tmp=$(mktemp -d) || exit 0
@@ -30,6 +32,10 @@ hits="$tmp/hallazgos"  # regla<TAB>archivo
 : >"$hits"
 tab=$'\t'
 
+# Rutas sin escapar: con el `core.quotePath` por defecto, una carpeta con tilde
+# sale entre comillas y `.env"` ya no se reconoce como `.env`.
+g() { git -c core.quotePath=false "$@"; }
+
 # Convierte un diff en líneas añadidas prefijadas con su archivo.
 added_lines() {
   awk '
@@ -40,23 +46,58 @@ added_lines() {
   '
 }
 
-git diff --cached --no-color --no-ext-diff --no-prefix -U0 --diff-filter=d | added_lines >>"$lines"
-git diff --cached --name-only --diff-filter=d >>"$files"
+# Archivo completo como líneas añadidas, si es de texto.
+whole_file() {
+  printf '%s\n' "$1" >>"$files"
+  if grep -Iq . "$1" 2>/dev/null; then
+    awk -v f="$1" '{ print f "\t" $0 }' "$1" >>"$lines"
+  fi
+}
 
-# Con `git add` en el mismo comando, lo que aún no está en el índice también
-# va a entrar: los cambios sin preparar y los archivos nuevos sin seguimiento.
-case "$cmd" in
-  *"git add"*)
-    git diff --no-color --no-ext-diff --no-prefix -U0 --diff-filter=d | added_lines >>"$lines"
-    git diff --name-only --diff-filter=d >>"$files"
-    while IFS= read -r -d '' f; do
-      printf '%s\n' "$f" >>"$files"
-      if grep -Iq . "$f" 2>/dev/null; then
-        awk -v f="$f" '{ print f "\t" $0 }' "$f" >>"$lines"
-      fi
-    done < <(git ls-files --others --exclude-standard -z)
-    ;;
-esac
+# Archivos ignorados que un `git add -f` del mismo comando va a forzar al índice
+# (sin -f no entran, y `--exclude-standard` los deja fuera). Las rutas son
+# relativas al cwd del comando; no se interpretan comillas.
+forced_ignored() {
+  grep -oE 'git add[^;&|]*' <<<"$cmd" | while read -r -a words; do
+    force=0
+    paths=()
+    for w in "${words[@]:2}"; do
+      case "$w" in
+        -f | --force) force=1 ;;
+        --*) ;;
+        -*) [[ $w =~ ^-[A-Za-z]*f ]] && force=1 ;;
+        *) paths+=("$prefix$w") ;;
+      esac
+    done
+    if [ "$force" = 1 ] && [ ${#paths[@]} -gt 0 ]; then
+      git ls-files -z --others --ignored --exclude-standard -- "${paths[@]}"
+    fi
+  done
+}
+
+with_add=0
+case "$cmd" in *"git add"*) with_add=1 ;; esac
+# `git commit -a` / `--all` (también agrupado, como `-am`) mete los cambios
+# sin preparar de los archivos con seguimiento.
+with_all=0
+all_re='git[[:space:]]+commit[^;&|]*[[:space:]](-[A-Za-z]*a[A-Za-z]*|--all)([[:space:]]|$)'
+[[ $cmd =~ $all_re ]] && with_all=1
+
+g diff --cached --no-color --no-ext-diff --no-prefix -U0 --diff-filter=d | added_lines >>"$lines"
+g diff --cached --name-only --diff-filter=d >>"$files"
+
+# Con `git add` o `git commit -a`, lo que aún no está en el índice también va a
+# entrar: los cambios sin preparar y, con `git add`, los archivos sin
+# seguimiento y los ignorados que fuerce con -f.
+if [ "$with_add" = 1 ] || [ "$with_all" = 1 ]; then
+  g diff --no-color --no-ext-diff --no-prefix -U0 --diff-filter=d | added_lines >>"$lines"
+  g diff --name-only --diff-filter=d >>"$files"
+fi
+if [ "$with_add" = 1 ]; then
+  while IFS= read -r -d '' f; do
+    whole_file "$f"
+  done < <(git ls-files --others --exclude-standard -z; forced_ignored)
+fi
 
 record() { # regla, archivos por la entrada estándar
   sort -u | awk -v r="$1" 'NF { print r "\t" $0 }' >>"$hits"
