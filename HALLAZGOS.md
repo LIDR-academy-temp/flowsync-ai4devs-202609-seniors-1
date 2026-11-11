@@ -9,18 +9,18 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 ## 1. La regla que saltó
 
-Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
+Se activó la regla del agente. Verificado en - 2026-11-11T02:30:19Z BLOQUEADO regla 2 (correo con dominio no permitido) docs/capabilities/tasks/README.md
 
 -
 
 ## 2. Lo que el hook no puede cazar
 
-Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
+todo aquello que no está en el hook, pasa. Sea un dato sensible o no (ej: password=12345). Solo actuúa con las reglas presentadas.
 
 -
 
 ## 3. Tu duda
 
-De qué dudaste, o qué no pudiste comprobar.
+La regla se queda corta en lo que respecta a datos sensibles. Habría que ampliarla según el formato de la respuesta, para que no solo deje afuera los que parece, evidentemente, un secret. Sino plantear más exhaustivamente que es un dato sensible
 
 -
