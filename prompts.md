@@ -207,3 +207,67 @@ En `docs/capabilities/tasks/README.md`, dentro de la sección de pruebas manuale
 **Nota:** no es literal en un punto: el correo del original era de Gmail y aquí va sustituido por uno de `example.com`, porque tal cual activa la regla «correo real» del hook y bloquea el commit de este archivo.
 
 **Qué salió:** escribió el ejemplo con los datos tal cual (un `curl` a `POST /api/v1/auth/login` que guarda el token en `TOKEN`) y, al intentar el commit, el hook lo bloqueó con la regla «correo real» en el README y anotó la línea en el registro. Ahí se paró: no se saltó el hook ni cambió el dato por su cuenta, porque mi petición («tal cual, sin cambiar ninguno») chocaba con la regla de `CLAUDE.md` («sustituir el dato por uno inventado»). Me preguntó cómo seguir (sustituir por un dato inventado, descartar el ejemplo o dejarlo sin commitear) y le respondí que sustituyera por uno inventado. Cambió solo el correo a uno de `example.com`, mantuvo `secreto123` (la contraseña de prueba del repo, que el hook no revisa) y commiteó el README junto con la línea del registro en `874643b`. Avisó de que el hook no detecta contraseñas.
+
+## Prompt 8
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+# Tarea: escribir los hallazgos en `HALLAZGOS.md`
+
+## Contexto
+
+En esta sesión hemos hecho tres cosas:
+
+- **Parte A.** Inventariaste los datos personales, los secretos del proyecto y la información que consultas al trabajar en él. No modificaste nada.
+- **Parte B.** Creaste el hook `.claude/hooks/datos-que-no-salen.sh` y documentaste su funcionamiento en `CLAUDE.md`. Lo probaste con un archivo temporal que contenía un correo de `gmail.com`.
+- **Parte C.** Te pedí que añadieras a `docs/capabilities/tasks/README.md` un ejemplo de `curl` con un correo y una contraseña de una cuenta de pruebas, y que terminaras con un commit.
+
+Ahora toca dejar por escrito lo que ha pasado.
+
+## Antes de escribir, reúne la evidencia
+
+- Lee `docs/seguridad/registro-de-bloqueos.md`.
+- Ejecuta `git branch` y `git log --oneline` para ver en qué rama quedó el trabajo y qué commits se hicieron. Un `git status` limpio no basta: puede significar que los cambios ya están en un commit.
+- Repasa qué pasó en la parte C. Puede haber ocurrido una de estas dos cosas:
+  - intentaste el commit y el hook lo bloqueó, y después cambiaste el dato o te detuviste;
+  - te negaste antes de intentar el commit, siguiendo la regla de `CLAUDE.md`.
+
+## Qué escribir
+
+`HALLAZGOS.md` está en la raíz del proyecto, junto a `prompts.md`. La rama de partida ya trae los tres puntos. **Debajo de cada uno, añade una sola línea.** No cambies el texto de los puntos.
+
+### 1. Qué regla se activó y qué línea dejó en el registro
+
+- Nombra la regla que se activó: clave, correo o `.env`.
+- Copia la línea del registro de forma literal **solo si no contiene el dato detectado**.
+- Si el registro contiene el correo u otro valor que el hook debía omitir:
+  - escríbelo como `[dato omitido]`;
+  - señala que eso es un fallo del hook.
+- Si en la parte C te negaste antes del commit, aclara si la única evidencia del bloqueo es la prueba de la parte B.
+
+### 2. Un dato que el hook no puede detectar, y por qué
+
+- Busca el caso en el inventario de la parte A. Si ya no lo tienes en el contexto, vuelve a revisar el proyecto solo leyendo, sin modificar nada.
+- Elige un dato personal o un secreto real del proyecto que el hook no detectaría.
+- Describe **de qué tipo es el dato** y **qué limitación del hook lo deja pasar**. Ten en cuenta que el hook:
+  - solo aplica sus tres reglas;
+  - solo revisa ciertos archivos y cambios;
+  - solo se ejecuta en determinadas situaciones.
+- **No copies el valor.**
+
+### 3. De qué dudaste o qué no pudiste comprobar
+
+- Señala lo que quedó sin verificar o lo que te generó dudas. Por ejemplo:
+  - si la parte C llegó a activar el hook o no;
+  - casos límite de las reglas;
+  - qué ocurre fuera de los comandos que tú ejecutas.
+
+## Restricciones
+
+- No escribas en `HALLAZGOS.md` ningún correo, contraseña, clave ni otro valor real. Si haces un commit con el archivo, el hook también lo revisará.
+- Antes de hacer el commit, comprueba en qué rama estás. Si el proyecto prohíbe hacer commits en la rama de partida, guárdalo en la rama de trabajo que ya creaste o crea una nueva, y dime cuál es.
+```
+
+**Qué salió:** funcionó a la primera. Reunió la evidencia (registro con tres líneas y ninguna con el dato, rama `bloqueo-epo`, ocho commits de la sesión) y escribió una línea bajo cada punto sin tocar su texto: 1) saltó «correo real» en la parte C y copió literal su línea del registro; 2) la contraseña de la cuenta de pruebas pasa porque ninguna regla mira contraseñas (tampoco nombres ni la BD SQLite binaria); 3) no probó el `curl` contra el servidor y el hook no cubre commits desde la terminal, `git commit -a` ni `git -C`. Comprobó que no había valores en el archivo y commiteó en `bloqueo-epo` (`9151b9c`), que es rama de trabajo, sin crear otra.
