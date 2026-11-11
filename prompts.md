@@ -140,3 +140,47 @@ ahora modifica el prompt 2 para que pase las reglas del hook y anota el ultimo p
 ```
 
 **Qué salió:** describió en palabras los prefijos de Anthropic, GitHub y Slack del Prompt 2 («seguido de guion») y añadió una nota de que en ese punto ya no es literal. Apuntó los Prompts 4 y 5. Con eso el hook dejó pasar el commit de `prompts.md`; `docs/seguridad/registro-de-bloqueos.md` quedó fuera, sin seguimiento.
+
+## Prompt 6
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+# Tarea: documentar el hook en `CLAUDE.md` y probarlo
+
+## 1. Documentación en `CLAUDE.md`
+
+Añade un bloque breve en la sección de reglas de proceso del `CLAUDE.md` del repositorio. Debe explicar:
+
+- **Que el hook existe:** `.claude/hooks/datos-que-no-salen.sh`, que se ejecuta antes de cada `git commit`.
+- **Qué tres cosas bloquea:**
+  1. claves con forma reconocible;
+  2. direcciones de correo de dominios que no sean de ejemplo;
+  3. archivos `.env`.
+- **Qué hacer ante un bloqueo:**
+  - no desactivar el hook ni saltárselo;
+  - sustituir el dato por uno inventado que cumpla las reglas;
+  - volver a intentar el commit.
+- **Qué pasa con el registro:** `docs/seguridad/registro-de-bloqueos.md` se incluye en el commit junto con el resto del trabajo, porque es la evidencia del bloqueo.
+
+### Restricción
+
+- **No modifiques `AGENTS.md`.** Antes de editar `CLAUDE.md`, comprueba qué es `AGENTS.md` (por ejemplo, si es un enlace simbólico a `CLAUDE.md` o si `CLAUDE.md` lo importa). Asegúrate de que tu cambio no lo altere de forma indirecta.
+
+## 2. Prueba antes de dar la tarea por terminada
+
+1. Crea un archivo temporal que contenga un correo de `gmail.com`. La dirección debe ser inventada.
+2. Ejecuta `git add` sobre ese archivo e intenta hacer un commit.
+3. Comprueba que el hook:
+   - sale con código `2`;
+   - impide el commit;
+   - añade una línea a `docs/seguridad/registro-de-bloqueos.md`.
+
+## 3. Limpieza
+
+- Retira el archivo temporal del área de preparación y del directorio de trabajo.
+- **Conserva la línea del registro:** es la primera evidencia de que el hook ha actuado.
+```
+
+**Qué salió:** comprobó que `AGENTS.md` es un enlace simbólico a `CLAUDE.md` (versionado así en Git), así que la restricción no se podía cumplir editando `CLAUDE.md`, y preguntó. Propuso usar `.claude/CLAUDE.md`; elegí editar `CLAUDE.md` igualmente: el enlace no cambia ni en Git ni en disco, pero al leer `AGENTS.md` se ve el bloque (y otros agentes leerán que hay un hook que no les protege). La prueba, con un correo inventado de Gmail preparado y un intento de commit, salió bien: el hook real lo bloqueó con la regla «correo real», no hubo commit, una ejecución manual dio `exit=2` (guardando y reponiendo el registro para no duplicar la línea) y quedó una línea en el registro sin la dirección. Retiró el archivo temporal del índice y del disco, y commiteó el bloque de `CLAUDE.md` con la línea del registro en `1040b42`.
