@@ -131,6 +131,10 @@ La URL de la API sale de `VITE_API_URL` (ver `frontend/.env.example`); por defec
 ## Reglas de proceso
 - La rama es por unidad de trabajo, no por petición. Antes de tocar código, mira en qué rama estás: si ya es una rama de trabajo —cualquiera que no sea `main` ni una `sN/*`—, sigue en ella en vez de crear otra. Solo desde `main` o desde una `sN/*` se crea una nueva (`git checkout -b feat/<slug>`). Nunca commitear directo en `main` ni en una `sN/*`.
 - El commit sí es por petición: al cerrar cada una, usar la skill `/commit`.
+- Antes de cada `git commit` se ejecuta el hook `.claude/hooks/datos-que-no-salen.sh` (`PreToolUse`, solo en Claude Code). Bloquea el commit si lo que va a entrar contiene una clave con forma reconocible, un correo de un dominio que no sea de ejemplo (`example.com`, `example.org`, `example.net` o `github.com`) o un archivo `.env`. Ante un bloqueo:
+  - No desactivarlo ni saltárselo.
+  - Sustituir el dato por uno inventado que cumpla las reglas y volver a intentar el commit.
+  - Incluir `docs/seguridad/registro-de-bloqueos.md` en ese commit junto con el resto del trabajo: la línea que añade el hook es la evidencia del bloqueo.
 - Un cambio que toque rutas, controladores, validadores o transformers de una capability se cierra en el mismo commit con el documento OpenAPI y el README de esa capability al día. El documento se construye en cada petición y no hay fichero que generar, así que lo que se commitea es el diff regenerado de `.adonisjs/`; el README es `docs/capabilities/<nombre>/README.md`.
 - `gh pr create` (con una descripción completa de los cambios en el cuerpo del PR) y el pase del subagente `adversarial-reviewer` sobre ese PR van **una sola vez, al terminar la unidad de trabajo**, no al cerrar cada petición. El review adversarial es lo último, antes de dar la unidad por terminada.
 - Cuando abras el PR, no repitas ese resumen en el chat: la sesión se va a perder, el PR no. Responde solo con la URL del PR.
