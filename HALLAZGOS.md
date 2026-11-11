@@ -11,16 +11,16 @@ repite el correo o el secreto, eso es otra copia del dato (y también es un hall
 
 Qué regla saltó en tu prueba, y la línea literal que dejó el registro.
 
--
+- Saltó «correo real» en la parte C, al intentar el commit del README (después, tras preguntarte, sustituí el correo por uno de example.com), y el registro dejó, sin el dato: `2026-11-11T10:36:48Z BLOQUEADO correo real docs/capabilities/tasks/README.md`.
 
 ## 2. Lo que el hook no puede cazar
 
 Un dato personal o un secreto de este proyecto que el hook NO puede cazar, y por qué.
 
--
+- La contraseña de la cuenta de pruebas del ejemplo de `curl` (la misma de `README.md:143`): el hook solo aplica sus tres reglas y ninguna mira contraseñas, así que entró en el commit `874643b` sin aviso; tampoco caza nombres de personas ni los correos y hashes de `backend/tmp/db.sqlite3` si se añade a la fuerza, porque es binario y no deja líneas añadidas que revisar.
 
 ## 3. Tu duda
 
 De qué dudaste, o qué no pudiste comprobar.
 
--
+- No comprobé contra el servidor real que el `curl` funcione (la cuenta con el correo sustituido no existe hasta registrarla), ni lo que pasa fuera de mis comandos: el hook solo corre en el Bash de Claude Code, así que un commit desde tu terminal, un `git commit -a` o un `git -C … commit` no pasan por él; tampoco probé casos límite como los subdominios de example.com, que hoy bloquearía.
