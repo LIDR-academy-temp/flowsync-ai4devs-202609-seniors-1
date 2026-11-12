@@ -27,7 +27,7 @@ El agente negó antes del commit pero fue a raíz del hook; no por left overs de
 
 ## 2. Lo que el hook no puede cazar
 
-El nombre completo de una persona (columna `users.full_name` de la tabla users): si un nombre real entra en un test, un ejemplo de la documentación o el título de una tarea, el hook no lo para, porque ninguna de sus tres reglas busca nombres. Solo detecta claves con forma conocida, correos de dominios que no son de ejemplo y ficheros .env, y un nombre no tiene una forma que se pueda reconocer mirando solo el texto.
+El nombre completo de una persona (columna `users.full_name` de la tabla users): si un nombre real entra en un test, un ejemplo de la documentación o el título de una tarea, el hook no lo para, porque ninguna de sus tres reglas busca nombres. Solo detecta claves con forma conocida, correos de dominios que no son de ejemplo y ficheros .env, y un nombre no tiene una forma que se pueda reconocer mirando solo el texto. Lo mismo pasa con una contraseña escrita en claro, como la del `curl` de login del README de `tasks`: ninguna regla busca contraseñas, y una real no se distingue de una inventada mirando el texto.
 
 -
 
