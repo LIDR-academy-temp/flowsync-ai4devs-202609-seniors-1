@@ -16,6 +16,11 @@ PreToolUse:Bash hook error: [command hook]: Commit bloqueado por .claude/hooks/d
 Sustituye el dato señalado por uno inventado (un .env, déjalo fuera del commit) y vuelve a intentarlo.
 ```
 
+La línea literal que dejó en `docs/seguridad/registro-de-bloqueos.md`:
+```
+- 2026-11-08T13:58:15Z BLOQUEADO regla 2 (correo de un dominio que no es de ejemplo) `docs/capabilities/tasks/README.md`
+```
+
 El agente negó antes del commit pero fue a raíz del hook; no por left overs de la parte B.
 
 -
