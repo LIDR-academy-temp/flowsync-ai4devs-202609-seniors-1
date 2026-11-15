@@ -1,0 +1,51 @@
+# PostgreSQL de desarrollo y de pruebas para FlowSync.
+#
+# Credenciales SOLO de desarrollo local: no son secretos y no protegen nada.
+# Los puertos se publican únicamente en 127.0.0.1 para que no queden expuestos
+# en la red. 54410/54411 evitan chocar con una instancia propia en el 5432.
+
+name: flowsync
+
+services:
+  # Desarrollo: los datos persisten en un volumen con nombre.
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_dev
+    ports:
+      - '127.0.0.1:54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # `-h 127.0.0.1` es deliberado: durante el primer arranque la imagen
+      # levanta un servidor temporal que solo escucha por socket unix. Sin -h,
+      # pg_isready contestaría "ok" a ese servidor temporal y no al definitivo.
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U flowsync -d flowsync_dev']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  # Pruebas: en memoria (tmpfs) y sin volumen. Al parar el contenedor los datos
+  # desaparecen, así que cada ejecución parte de una base vacía.
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '127.0.0.1:54411:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U flowsync -d flowsync_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  db-data:

@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean db-up db-down
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -107,6 +107,26 @@ start: ## Levanta backend y frontend a la vez
 	( cd $(FRONTEND) && npm run dev; \
 	  echo ""; echo "⚠️  El frontend se ha parado. Cerrando el backend."; kill -INT 0 ) & \
 	wait
+
+# ---------------------------------------------------------------------------
+# bases de datos (PostgreSQL en Docker, ver compose.yaml)
+# ---------------------------------------------------------------------------
+
+# `--wait` bloquea hasta que los healthchecks de db y db-test pasan a healthy
+# (y falla si alguno no lo consigue), así que al volver el prompt ya se puede
+# conectar. En el primer arranque PostgreSQL tarda unos segundos en inicializar.
+db-up: ## Arranca las bases de desarrollo y pruebas (espera a que estén sanas)
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@echo "🐘 Arrancando PostgreSQL (desarrollo :54410, pruebas :54411)..."
+	@docker compose up -d --wait
+	@echo "✅ Las dos bases están sanas."
+
+# No lleva `-v`: el volumen de desarrollo conserva los datos. La base de pruebas
+# vive en memoria y se vacía sola al parar.
+db-down: ## Detiene las bases (los datos de desarrollo se conservan)
+	@echo "🛑 Deteniendo PostgreSQL..."
+	@docker compose down
+	@echo "✅ Bases detenidas. Datos de desarrollo conservados en el volumen."
 
 # ---------------------------------------------------------------------------
 # clean
