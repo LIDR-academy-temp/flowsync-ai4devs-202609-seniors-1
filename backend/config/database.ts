@@ -1,15 +1,62 @@
 import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/lucid'
+import env from '#start/env'
 
 const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
    */
-  connection: 'sqlite',
+  connection: 'postgres',
 
   connections: {
     /**
-     * SQLite connection (default).
+     * PostgreSQL connection (default).
+     *
+     * Host, puerto, usuario, contraseña y base de datos salen del entorno:
+     * `.env` apunta a la base de desarrollo y `.env.test` (que el framework
+     * carga solo con NODE_ENV=test) a la de pruebas. Ver compose.yaml.
+     */
+    postgres: {
+      client: 'pg',
+
+      connection: {
+        host: env.get('DB_HOST'),
+        port: env.get('DB_PORT'),
+        user: env.get('DB_USER'),
+        password: env.get('DB_PASSWORD').release(),
+        database: env.get('DB_DATABASE'),
+      },
+
+      migrations: {
+        /**
+         * Sort migration files naturally by filename.
+         */
+        naturalSort: true,
+
+        /**
+         * Paths containing migration files.
+         */
+        paths: ['database/migrations'],
+      },
+
+      schemaGeneration: {
+        /**
+         * Enable schema generation from Lucid models.
+         */
+        enabled: true,
+
+        /**
+         * Custom schema rules file paths.
+         */
+        rulesPaths: ['./database/schema_rules.js'],
+      },
+    },
+
+    /**
+     * SQLite connection (ya no es la de por defecto).
+     *
+     * Se conserva definida, sin uso, mientras dura la migración a PostgreSQL;
+     * se podrá quitar junto con `better-sqlite3` cuando termine.
      */
     sqlite: {
       client: 'better-sqlite3',
@@ -47,26 +94,6 @@ const dbConfig = defineConfig({
         rulesPaths: ['./database/schema_rules.js'],
       },
     },
-
-    /**
-     * PostgreSQL connection.
-     * Install package to switch: npm install pg
-     */
-    // pg: {
-    //   client: 'pg',
-    //   connection: {
-    //     host: env.get('DB_HOST'),
-    //     port: env.get('DB_PORT'),
-    //     user: env.get('DB_USER'),
-    //     password: env.get('DB_PASSWORD'),
-    //     database: env.get('DB_DATABASE'),
-    //   },
-    //   migrations: {
-    //     naturalSort: true,
-    //     paths: ['database/migrations'],
-    //   },
-    //   debug: app.inDev,
-    // },
 
     /**
      * MySQL / MariaDB connection.

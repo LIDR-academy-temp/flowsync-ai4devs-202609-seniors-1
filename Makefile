@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean db-up db-down
+.PHONY: help setup start install env migrate clean db-up db-down db-dev-ready db-test-ready db-migrate db-migrate-test test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,7 +22,7 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-16s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
@@ -61,8 +61,9 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
-	@echo "🗃️  Ejecutando migraciones..."
+# Migra la base de desarrollo; necesita que `db` esté arrancada (y sana).
+migrate: db-dev-ready
+	@echo "🗃️  Ejecutando migraciones en la base de desarrollo..."
 	@cd $(BACKEND) && node ace migration:run
 
 # ---------------------------------------------------------------------------
@@ -127,6 +128,30 @@ db-down: ## Detiene las bases (los datos de desarrollo se conservan)
 	@echo "🛑 Deteniendo PostgreSQL..."
 	@docker compose down
 	@echo "✅ Bases detenidas. Datos de desarrollo conservados en el volumen."
+
+# Arrancan solo el servicio que hace falta y esperan a que esté sano. Son
+# idempotentes: si ya está arrancado, `up -d --wait` no hace nada.
+db-dev-ready:
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@docker compose up -d --wait db
+
+db-test-ready:
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@docker compose up -d --wait db-test
+
+db-migrate: migrate ## Migra la base de desarrollo (arrancándola si hace falta)
+
+# NODE_ENV=test hace que el framework cargue backend/.env.test (puerto 54411,
+# base flowsync_test) por encima de .env. Se pone explícito, y no se confía en
+# que `ace` lo fije a tiempo, para que esta receta no pueda tocar nunca la base
+# de desarrollo.
+db-migrate-test: db-test-ready ## Migra la base de pruebas (arrancándola si hace falta)
+	@echo "🗃️  Ejecutando migraciones en la base de pruebas..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+test: db-migrate-test ## Lanza la batería de pruebas contra la base de pruebas
+	@echo "🧪 Lanzando pruebas contra la base de pruebas..."
+	@cd $(BACKEND) && NODE_ENV=test node ace test
 
 # ---------------------------------------------------------------------------
 # clean
