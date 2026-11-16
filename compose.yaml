@@ -1,0 +1,51 @@
+# FlowSync — bases de datos PostgreSQL 17 (con pgvector) para desarrollo y pruebas.
+#
+# Arranque y parada: `make db-up` / `make db-down` (ver Makefile).
+#
+# Comprobación de salud: `pg_isready` contra 127.0.0.1 (TCP), no contra el
+# socket Unix. Durante el primer arranque, el entrypoint de la imagen levanta un
+# servidor temporal que solo escucha en el socket mientras crea el usuario y la
+# base; un `pg_isready` por socket daría «listo» en ese momento y luego el
+# servidor se reiniciaría. Por TCP solo responde el servidor definitivo.
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_dev
+    ports:
+      - '127.0.0.1:54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-h', '127.0.0.1', '-p', '5432', '-U', 'flowsync', '-d', 'flowsync_dev']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+      start_interval: 1s
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '127.0.0.1:54411:5432'
+    # Sin volumen: el directorio de datos vive en memoria (tmpfs) y desaparece
+    # al parar el contenedor.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-h', '127.0.0.1', '-p', '5432', '-U', 'flowsync', '-d', 'flowsync_test']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+      start_interval: 1s
+
+volumes:
+  db-data:
