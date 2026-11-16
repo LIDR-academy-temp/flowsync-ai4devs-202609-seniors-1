@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean db-up db-down db-migrate test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,7 +22,7 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-12s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
@@ -107,6 +107,37 @@ start: ## Levanta backend y frontend a la vez
 	( cd $(FRONTEND) && npm run dev; \
 	  echo ""; echo "⚠️  El frontend se ha parado. Cerrando el backend."; kill -INT 0 ) & \
 	wait
+
+# ---------------------------------------------------------------------------
+# bases de datos (compose.yaml: servicios db y db-test)
+# ---------------------------------------------------------------------------
+
+# `--wait` no devuelve el control hasta que los dos servicios están `healthy`,
+# es decir, hasta que su healthcheck (pg_isready por TCP) acepta conexiones.
+db-up: ## Arranca PostgreSQL de desarrollo (54410) y de pruebas (54411)
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@echo "🐘 Arrancando db y db-test y esperando a que acepten conexiones..."
+	@docker compose up -d --wait db db-test
+	@docker compose ps db db-test
+
+db-down: ## Detiene las bases (la de pruebas, en memoria, se pierde)
+	@echo "🛑 Deteniendo db y db-test..."
+	@docker compose down
+
+# NODE_ENV=test hace que Adonis cargue backend/.env.test, que apunta a db-test.
+db-migrate: ## Ejecuta las migraciones en la base de desarrollo y en la de pruebas
+	@echo "🗃️  Migrando la base de desarrollo (db)..."
+	@cd $(BACKEND) && node ace migration:run
+	@echo "🗃️  Migrando la base de pruebas (db-test)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# Antes de cada ejecución se reconstruye el esquema de db-test desde cero
+# (migration:fresh), para que ningún dato de una ejecución llegue a la siguiente.
+test: ## Lanza las pruebas del backend contra la base de pruebas
+	@echo "🧪 Reconstruyendo el esquema de la base de pruebas (db-test)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:fresh
+	@echo "🧪 Lanzando las pruebas..."
+	@cd $(BACKEND) && node ace test
 
 # ---------------------------------------------------------------------------
 # clean
