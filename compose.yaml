@@ -1,0 +1,38 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    ports:
+      - '54410:5432'
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync_dev
+      POSTGRES_DB: flowsync
+    volumes:
+      - flowsync-db:/var/lib/postgresql/data
+    healthcheck:
+      # Por TCP y no por el socket: durante la inicialización la imagen arranca
+      # un servidor temporal que solo escucha en el socket y ya respondería.
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U flowsync -d flowsync']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    ports:
+      - '54411:5432'
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync_dev
+      POSTGRES_DB: flowsync_test
+    # En memoria y sin volumen: efímera a propósito.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U flowsync -d flowsync_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  flowsync-db:
