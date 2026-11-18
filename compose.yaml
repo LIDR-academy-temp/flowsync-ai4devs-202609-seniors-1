@@ -1,0 +1,65 @@
+# FlowSync — bases de datos de desarrollo y de pruebas.
+#
+# Las dos usan la misma imagen (PostgreSQL 17 con pgvector) para que lo que pasa
+# en las pruebas sea lo que pasa en desarrollo. Los puertos se salen del 5432 a
+# propósito, para convivir con un PostgreSQL que ya esté escuchando ahí.
+#
+# Arrancar y esperar a que las dos acepten conexiones: make db-up
+
+name: flowsync
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync
+    ports:
+      - "54410:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # Se pregunta por TCP (`-h 127.0.0.1`) y no por el socket a propósito: en el
+    # primer arranque, la imagen levanta un servidor temporal que solo escucha
+    # en el socket mientras ejecuta la inicialización, y un `pg_isready` por
+    # socket lo daría por listo antes de tiempo. Por TCP solo responde el
+    # servidor definitivo.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"',
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - "54411:5432"
+    # En memoria y sin volumen: al parar el contenedor desaparecen los datos, y
+    # cada arranque empieza de una base vacía que hay que migrar (make migrate).
+    tmpfs:
+      - /var/lib/postgresql/data
+    # La durabilidad no sirve de nada en una base que se tira al parar, así que
+    # se apaga para que las pruebas vayan más rápido.
+    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"',
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+volumes:
+  db-data:
