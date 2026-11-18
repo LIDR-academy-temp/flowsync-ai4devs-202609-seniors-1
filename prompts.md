@@ -159,3 +159,82 @@ Un resumen corto con:
 ```
 
 **Qué salió:** se paró en el plan como pedía, sin tocar nada, y verificó en `node_modules` que Lucid 22 acepta `client: 'pg'` y `schemaGeneration`, y que `.env.test` tiene prioridad sobre `.env`. Detectó que `.github/workflows/openapi.yml` se rompería con `DB_*` obligatorias (propone variables de mentira en su `env:`) y que la verificación 4 no prueba nada si `test` depende de `db-up`, porque eso vuelve a levantar `db` (propone un `db-test-up`). Dejó abiertas cinco decisiones: ese `db-test-up`, `clean`, quitar `better-sqlite3`, dónde va el hallazgo en `HALLAZGOS.md` y la documentación que sigue hablando de SQLite.
+
+## Prompt 3
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+Visto bueno al plan, incluido el cambio en `.github/workflows/openapi.yml`. Limítate a la migración: lo que se compruebe después lo haré yo aparte. Mis respuestas:
+
+1. **Opción (a).** Crea `db-test-up` (`docker compose up -d --wait db-test`) y haz que `test` dependa de él. `db-up` sigue levantando las dos bases y `migrate` sigue dependiendo de `db-up`. Para la verificación 4: `docker compose stop db`, después `make test`, y enséñame `docker compose ps` para ver que `db` sigue parada.
+
+2. **`clean`:** de acuerdo. Quita la línea de `db.sqlite3*`, no añadas nada de Docker y deja el fichero donde está.
+
+3. **`better-sqlite3`:** sí, desinstálalo. Antes, comprueba que nada más en `backend/` lo use.
+
+4. **`HALLAZGOS.md`: no lo toques.** Tampoco hagas la comprobación de `due_date` (el paso 6 de la verificación ni la sección «Riesgo conocido»). Eso lo haré yo después.
+
+5. **Documentación: no la actualices.** Ni `CLAUDE.md`, ni `docs/`, ni el comentario de `signup.spec.ts`. Basta con que la dejes listada como pendiente en el resumen final.
+
+Más indicaciones:
+- **No toques `backend/database/schema_rules.ts` y no edites a mano `backend/database/schema.ts`.** Si `schema.ts` se regenera solo al migrar, deja el resultado tal cual y no lo «arregles». En el resumen, dime solo si cambió o no.
+- **No hagas commit.** Antes de empezar, dime en qué rama estás (`git branch --show-current`) y deja todos los cambios sin commitear.
+- Al terminar, enséñame `git diff --stat` y `git diff --exit-code -- backend/database/migrations/`; este último tiene que salir sin diferencias.
+- Siguen en pie las prohibiciones: nada de `backups/`, nada de `frontend/` y ninguna migración modificada.
+
+Adelante.
+```
+
+**Qué salió:** migración hecha a la primera y sin commit: `compose.yaml` nuevo, `pg` en lugar de `better-sqlite3`, `DB_*` en `env.ts`, `.env.example`, `.env` y `.env.test`, Makefile con `db-up`, `db-test-up`, `db-down`, `migrate` (las dos bases) y `test`, y `DB_*` de mentira en `openapi.yml`. `make test` pasa 23/23 también con `db` parada, `db` conserva su volumen tras `db-down`/`db-up` y `db-test` vuelve vacía, migraciones sin diff y `schema.ts` sin cambios. Hallazgo nuevo: `openapi:check` (y hasta `node ace list`) ya fallaba en `HEAD` con «Invalid command exported from "openapi_check.js" file. Invalid URL», así que el cambio del workflow quedó sin poder comprobarse. `setup` solo se probó en seco (`make -n`) para no lanzar `npm install` en `frontend/`.
+
+## Prompt 4
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+La migración a PostgreSQL ya está hecha. Ahora quiero averiguar qué se ha perdido con el cambio de motor. **Es una investigación, no un arreglo:**
+- No modifiques ningún fichero versionado: código, tests, migraciones, `schema.ts`, `schema_rules.ts`, Makefile ni configuración.
+- No escribas en `HALLAZGOS.md`.
+- Sigue prohibido abrir `backups/` o cualquier cosa de su interior.
+- Si necesitas un script auxiliar, ponlo en `backend/tmp/` (está ignorado por git) y bórralo al terminar.
+- Los únicos datos que puedes crear son datos inventados en `db` (desarrollo, puerto 54410). Bórralos al terminar.
+- Al final, `git status` tiene que salir igual que al empezar. Enséñamelo al principio y al final.
+
+Para cada paso, dame el comando que ejecutaste, la salida relevante, tu conclusión y tu grado de certeza (confirmado / probable / no comprobado).
+
+### Paso 1. Comprobación de tipos
+Ejecuta `(cd backend && npm run typecheck)` y dime si pasa o falla. Si pasa, explica qué significa que pase a pesar del cambio de motor: qué está viendo y qué no está viendo el compilador.
+
+### Paso 2. `schema.ts` frente a la rama de partida
+1. Localiza la referencia de la rama de partida (`s10/start`, `origin/s10/start` o la que exista) y ejecuta `git diff <ref> -- backend/database/schema.ts`.
+2. **Si hay cambios:** lista cada declaración que haya cambiado de tipo, con el tipo anterior y el nuevo.
+3. **Si el diff sale vacío:** averigua qué fija esos tipos al cambiar de motor.
+   - Revisa `backend/database/schema_rules.ts` y cómo lo usa la generación (`schemaGeneration` en `config/database.ts`).
+   - Para cada columna que tenga el tipo forzado, compara el tipo que declara `schema.ts` con el tipo que devuelve el driver `pg` en tiempo de ejecución. Compruébalo leyendo una fila real con `typeof` o `instanceof`, no solo leyendo el código.
+   - Revisa también los otros tipos que suelen cambiar entre SQLite y `pg`: `date` y `timestamp` (y el papel de `TZ`), `count`/`sum`/`bigint` (que `pg` devuelve como string), los booleanos y JSON. Busca en `backend/app/` cualquier sitio donde el código dependa de esos tipos.
+
+### Paso 3. Cómo decide el proyecto si una tarea está vencida
+1. Localiza el código que decide si una tarea está vencida (`app/models/task.ts:45-55` y todo lo que lo use: serializadores, controladores, respuestas de la API).
+2. Cita el comentario que explica por qué funciona la comparación y contrástalo con lo que encontraste en el paso 2. ¿Sigue siendo válido?
+3. **Compruébalo con una tarea que ya debería estar vencida**, no solo leyendo el código:
+   - Crea en `db` un usuario y una tarea inventados con `due_date` en el pasado. Hazlo, si se puede, por la API (`http://localhost:3333`). Si la validación no deja crear fechas pasadas, inserta la fila por SQL y léela a través de la aplicación.
+   - Enséñame qué valor y qué tipo tiene `dueDate` en tiempo de ejecución, y qué devuelve la lógica de «vencida».
+   - Como control, haz lo mismo con una tarea con fecha futura y otra sin fecha.
+   - Borra los datos al terminar.
+4. Busca si algún test de la suite cubre este caso. Si no lo cubre, explica por qué la suite sigue en verde.
+
+### Datos para la parte C (no escribas nada en `HALLAZGOS.md`)
+1. **Filas que cambian de valor con el cambio de esquema:**
+   - Mídelo con consultas SQL sobre `db` y `db-test`, y enséñame las consultas y los recuentos, aunque salga cero.
+   - Dime si alguna migración modifica datos.
+   - Busca en el repo (README, docs, lecciones) qué es el «árbol de reversibilidad» y dime en qué rama cae este cambio y por qué, citando dónde lo encontraste.
+2. **Casos que quedan fuera de la batería de pruebas:** lista cuáles encontraste, o qué buscaste y dónde si no encontraste ninguno.
+3. **Lo que no has podido comprobar o te ha dejado dudas.**
+
+Termina con un resumen de una línea por paso. No redactes las tres líneas de `HALLAZGOS.md`; esas las escribo yo.
+```
+
+**Qué salió:** investigación completa sin tocar ficheros versionados (`git status` igual al empezar y al terminar; datos de prueba y script borrados). `typecheck` en verde y `schema.ts` sin diff frente a `s10/start`, porque `schema_rules.ts` fija `dueDate` como `string`, pero en ejecución `pg` lo devuelve como `Date` (`instanceof Date` = true, y con `TZ` distinto de UTC se corre un día). Comprobado por la API: una tarea vencida da `isOverdue: true` en el `PUT` (string en memoria) y `false` en el `GET` (releída de la base), y `dueDate` sale como `"2026-11-01T00:00:00.000Z"` en vez de `AAAA-MM-DD`, que rompe el contrato OpenAPI; ningún test cubre el vencimiento. Hallazgo extra: un `fullName` de más de 255 caracteres da 500 en PG (SQLite no aplicaba la longitud de `varchar`). Cambian 0 filas de valor y ninguna migración toca datos; el «árbol de reversibilidad» no está definido en el repo. Usó el servidor de desarrollo que ya estaba corriendo y dejó un fichero temporal en `/tmp`, borrado en el mismo comando.
