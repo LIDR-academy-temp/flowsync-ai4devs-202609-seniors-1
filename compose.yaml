@@ -1,0 +1,39 @@
+# Bases de datos de FlowSync. Atajos: `make db-up` / `make db-down`.
+#
+#   db       desarrollo, puerto 54410, datos persistentes en un volumen con nombre
+#   db-test  pruebas,    puerto 54411, datos en memoria (tmpfs): cada ejecución parte de cero
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync
+    ports:
+      - '54410:5432'
+    volumes:
+      - flowsync-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '54411:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  flowsync-db-data:
