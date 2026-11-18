@@ -1,6 +1,6 @@
 # FlowSync — atajos de desarrollo.
 #
-# Requisitos: Node.js + npm y GNU Make.
+# Requisitos: Node.js 24+ con npm, GNU Make y Docker (con Docker Compose v2).
 #   - macOS:        make viene con las Command Line Tools de Xcode.
 #   - Linux / WSL:  sudo apt install make   (o el equivalente de tu distro)
 #
@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate migrate-test test db-up db-down db-wait clean
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,14 +22,14 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-13s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
 # setup
 # ---------------------------------------------------------------------------
 
-setup: install env migrate ## Deja el proyecto listo para arrancar
+setup: install env db-up migrate ## Deja el proyecto listo para arrancar
 	@echo ""
 	@echo "✅ Setup completado. Arranca todo con: make start"
 
@@ -61,9 +61,58 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
-	@echo "🗃️  Ejecutando migraciones..."
+migrate: db-wait ## Migra la base de desarrollo (db, puerto 54410)
+	@echo "🗃️  Ejecutando migraciones en desarrollo (db)..."
 	@cd $(BACKEND) && node ace migration:run
+
+# NODE_ENV=test hace que el framework cargue `.env.test`, que apunta a db-test.
+migrate-test: db-wait ## Migra la base de pruebas (db-test, puerto 54411)
+	@echo "🗃️  Ejecutando migraciones en pruebas (db-test)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# ---------------------------------------------------------------------------
+# bases de datos (compose.yaml)
+# ---------------------------------------------------------------------------
+
+DB_SERVICES := db db-test
+
+db-up: ## Levanta las dos bases (db y db-test) y espera a que estén sanas
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@docker info >/dev/null 2>&1 || { echo "❌ Docker está instalado pero apagado: ábrelo."; exit 1; }
+	@echo "🐘 Levantando $(DB_SERVICES)..."
+	@docker compose up -d --wait $(DB_SERVICES)
+	@$(MAKE) --no-print-directory db-wait
+
+db-down: ## Para las dos bases (db-test pierde sus datos; db los conserva)
+	@docker compose stop $(DB_SERVICES)
+
+# `healthy` no basta: el healthcheck pasa cuando el servidor escucha, pero lo
+# que necesitan las migraciones y las pruebas es entrar con su usuario en su
+# base. Se prueba exactamente eso, por TCP, con un SELECT 1, en cada servicio.
+db-wait: ## Espera a que las dos bases acepten conexiones de verdad
+	@for svc in $(DB_SERVICES); do \
+		printf "⏳ Esperando a %s" "$$svc"; \
+		ok=0; \
+		for i in $$(seq 1 60); do \
+			if docker compose exec -T $$svc sh -c 'psql -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -tAc "select 1"' >/dev/null 2>&1; then \
+				ok=1; break; \
+			fi; \
+			printf "."; sleep 1; \
+		done; \
+		if [ $$ok -ne 1 ]; then \
+			echo ""; echo "❌ $$svc no acepta conexiones. ¿Está levantada? Prueba: make db-up"; exit 1; \
+		fi; \
+		echo " ✅"; \
+	done
+
+# ---------------------------------------------------------------------------
+# test
+# ---------------------------------------------------------------------------
+
+# La batería migra db-test por su cuenta al arrancar (tests/bootstrap.ts), así
+# que aquí solo hace falta que la base esté arriba y aceptando conexiones.
+test: db-wait ## Corre la batería del backend contra db-test
+	@cd $(BACKEND) && npm test
 
 # ---------------------------------------------------------------------------
 # start
@@ -112,8 +161,10 @@ start: ## Levanta backend y frontend a la vez
 # clean
 # ---------------------------------------------------------------------------
 
-clean: ## Borra node_modules y la base de datos SQLite
+# No borra el volumen de `db`: perder los datos de desarrollo tiene que ser una
+# decisión explícita (`docker compose down -v`), no un efecto de limpiar.
+clean: ## Borra node_modules y para las bases (sin borrar los datos de desarrollo)
 	@echo "🧹 Limpiando..."
 	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules
-	@rm -f $(BACKEND)/tmp/db.sqlite3 $(BACKEND)/tmp/db.sqlite3-wal $(BACKEND)/tmp/db.sqlite3-shm
+	@docker compose down 2>/dev/null || true
 	@echo "✅ Listo. Vuelve a ejecutar: make setup"

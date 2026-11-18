@@ -1,0 +1,53 @@
+# Bases de datos de FlowSync: PostgreSQL 17 (con pgvector) en Docker.
+#
+#   db       desarrollo, puerto 54410, datos persistentes en un volumen.
+#   db-test  pruebas,     puerto 54411, datos en memoria (tmpfs): se pierden
+#            al parar el contenedor, a propósito.
+#
+# Las credenciales son locales y de usar y tirar. Se pueden cambiar con
+# variables de entorno (o un `.env` en esta carpeta, que no se versiona);
+# tienen que coincidir con las de `backend/.env` y `backend/.env.test`.
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${DB_USER:-flowsync}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-flowsync}
+      POSTGRES_DB: ${DB_DATABASE:-flowsync}
+    ports:
+      - '54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # `-h 127.0.0.1` fuerza TCP: durante la primera inicialización la imagen
+      # levanta un servidor temporal que solo escucha por el socket Unix, y un
+      # `pg_isready` por socket lo daría por bueno antes de tiempo.
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${DB_TEST_USER:-flowsync_test}
+      POSTGRES_PASSWORD: ${DB_TEST_PASSWORD:-flowsync_test}
+      POSTGRES_DB: ${DB_TEST_DATABASE:-flowsync_test}
+    ports:
+      - '54411:5432'
+    # Sin volumen: el directorio de datos vive en memoria. La imagen declara
+    # `VOLUME /var/lib/postgresql/data`, así que sin este tmpfs Docker crearía
+    # un volumen anónimo en disco igualmente.
+    tmpfs:
+      - /var/lib/postgresql/data:rw,size=256m
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  db-data:
