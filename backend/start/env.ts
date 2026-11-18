@@ -24,4 +24,12 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // Session
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory', 'database'] as const),
+
+  // Database (PostgreSQL). Obligatorias y sin valor por defecto: si faltan, la
+  // aplicación no arranca, en vez de conectarse a una base que no era.
+  DB_HOST: Env.schema.string({ format: 'host' }),
+  DB_PORT: Env.schema.number(),
+  DB_USER: Env.schema.string(),
+  DB_PASSWORD: Env.schema.string(),
+  DB_DATABASE: Env.schema.string(),
 })
