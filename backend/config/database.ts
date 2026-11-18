@@ -1,72 +1,64 @@
 import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/lucid'
+import pg from 'pg'
+import env from '#start/env'
+
+/**
+ * Las columnas `date` (OID 1082) llegan como texto ISO (`2026-11-18`), igual que
+ * con SQLite. Sin esto el driver las convierte en `Date` a medianoche local, y
+ * el esquema generado declara `dueDate` como `string` (ver schema_rules.ts).
+ */
+pg.types.setTypeParser(pg.types.builtins.DATE, (value) => value)
 
 const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
    */
-  connection: 'sqlite',
+  connection: 'pg',
 
   connections: {
     /**
-     * SQLite connection (default).
+     * PostgreSQL 17 en Docker (`compose.yaml`). Desarrollo usa el servicio `db`
+     * (puerto 54410) vía `.env`; las pruebas, `db-test` (54411) vía `.env.test`.
      */
-    sqlite: {
-      client: 'better-sqlite3',
-
+    pg: {
+      client: 'pg',
       connection: {
-        filename: app.tmpPath('db.sqlite3'),
+        host: env.get('DB_HOST'),
+        port: env.get('DB_PORT'),
+        user: env.get('DB_USER'),
+        password: env.get('DB_PASSWORD'),
+        database: env.get('DB_DATABASE'),
       },
-
-      /**
-       * Required by Knex for SQLite defaults.
-       */
-      useNullAsDefault: true,
-
       migrations: {
-        /**
-         * Sort migration files naturally by filename.
-         */
         naturalSort: true,
-
-        /**
-         * Paths containing migration files.
-         */
         paths: ['database/migrations'],
       },
-
       schemaGeneration: {
         /**
-         * Enable schema generation from Lucid models.
+         * El esquema (`database/schema.ts`) se genera desde esta conexión.
          */
         enabled: true,
-
-        /**
-         * Custom schema rules file paths.
-         */
         rulesPaths: ['./database/schema_rules.js'],
       },
     },
 
     /**
-     * PostgreSQL connection.
-     * Install package to switch: npm install pg
+     * SQLite original (`tmp/db.sqlite3`). Ya no es la conexión por defecto; se
+     * conserva para comparar sus datos con los de PostgreSQL. Sin generación de
+     * esquema, para que migrarla no reescriba `database/schema.ts`.
      */
-    // pg: {
-    //   client: 'pg',
-    //   connection: {
-    //     host: env.get('DB_HOST'),
-    //     port: env.get('DB_PORT'),
-    //     user: env.get('DB_USER'),
-    //     password: env.get('DB_PASSWORD'),
-    //     database: env.get('DB_DATABASE'),
-    //   },
-    //   migrations: {
-    //     naturalSort: true,
-    //     paths: ['database/migrations'],
-    //   },
-    //   debug: app.inDev,
-    // },
+    sqlite: {
+      client: 'better-sqlite3',
+      connection: {
+        filename: app.tmpPath('db.sqlite3'),
+      },
+      useNullAsDefault: true,
+      migrations: {
+        naturalSort: true,
+        paths: ['database/migrations'],
+      },
+    },
 
     /**
      * MySQL / MariaDB connection.
