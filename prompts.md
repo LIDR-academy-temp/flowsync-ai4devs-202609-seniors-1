@@ -147,7 +147,22 @@ Cuantos registros tiene cada tabla  del esquema en cada base de datos (desarroll
 Propone hacer seed para validar, lo descarto
 
 
+
+
 ## Prompt 9
+
+**Modelo:** Opus 5.5 - medium effort
+**Herramienta:** Claude Code
+
+```
+En postgre veo la columna due_date como date, y  según documentas se especifica como texto. Sin tocar nada, en que afecta?
+```
+
+**Qué salió:** Detalla funcionamiento del parser, y explica que guarda en date en db, pero que devolverá texto el driver pg hacia Node.
+
+
+
+## Prompt 10
 
 **Modelo:** Opus 5.5 - medium effort
 **Herramienta:** Claude Code
