@@ -1,0 +1,60 @@
+# FlowSync — bases de datos PostgreSQL para desarrollo y para pruebas.
+#
+# Se levantan con `make db-up`, que usa `docker compose up -d --wait`: el
+# comando no vuelve hasta que los dos servicios están `healthy`, así que lo que
+# venga detrás (migraciones, pruebas) no se encuentra un "connection refused".
+#
+# Las credenciales son de desarrollo local y no son secretas: las bases solo
+# escuchan en 127.0.0.1 y no contienen datos reales.
+
+name: flowsync
+
+# Comprobación de salud común a los dos servicios.
+#
+# `-h 127.0.0.1` es deliberado. La primera vez que arranca, la imagen inicializa
+# la base con un servidor temporal que solo escucha por socket Unix, lo para y
+# arranca el definitivo. Un `pg_isready` sin `-h` iría por el socket y daría la
+# base por sana durante esa fase temporal, justo antes de que se reinicie. Por
+# TCP solo responde el servidor definitivo.
+x-healthcheck: &healthcheck
+  test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -p 5432 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+  interval: 2s
+  timeout: 3s
+  retries: 15
+  start_period: 10s
+  start_interval: 1s
+
+services:
+  # Desarrollo: los datos sobreviven a `make db-down` gracias al volumen con nombre.
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync
+    ports:
+      - '127.0.0.1:54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck: *healthcheck
+    restart: unless-stopped
+
+  # Pruebas: efímera a propósito. La imagen declara `VOLUME` sobre PGDATA, así
+  # que no basta con no declarar un volumen: Docker crearía uno anónimo que
+  # sobreviviría a la recreación del contenedor. Montar PGDATA como tmpfs lo deja
+  # en memoria y evita ese volumen anónimo.
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '127.0.0.1:54411:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck: *healthcheck
+
+volumes:
+  db-data:
+    name: flowsync-db-data

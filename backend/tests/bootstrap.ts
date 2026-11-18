@@ -41,8 +41,62 @@ export const plugins: Config['plugins'] = [
  * The teardown functions are executed after all the tests
  */
 export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
-  setup: [],
+  setup: [assertTestDatabase],
   teardown: [],
+}
+
+/**
+ * Seguro contra correr la batería sobre la base de desarrollo.
+ *
+ * Las pruebas leen la conexión de `.env.test`, pero el loader de AdonisJS
+ * rellena con `.env` (desarrollo) cualquier `DB_*` que falte, y una variable
+ * exportada en la terminal pisa a las dos. Ninguno de esos caminos avisa. Por
+ * eso, antes de la primera prueba y de cualquier escritura, se comprueba:
+ *
+ * 1. que la configuración que Lucid va a usar apunta al puerto 54411 y a la base
+ *    `flowsync_test` (se mira la config resuelta, no solo las variables);
+ * 2. que la base a la que de verdad se conecta se llama `flowsync_test`;
+ * 3. que el servidor es el de pruebas: en `db-test` no existe la base `flowsync`
+ *    de desarrollo, y en `db` sí.
+ *
+ * Si algo no cuadra, la batería se para sin ejecutar ninguna prueba.
+ */
+async function assertTestDatabase() {
+  const EXPECTED_PORT = 54411
+  const EXPECTED_DATABASE = 'flowsync_test'
+  const DEV_DATABASE = 'flowsync'
+
+  const { default: db } = await import('@adonisjs/lucid/services/db')
+  const name = db.primaryConnectionName
+  const config = db.getRawConnection(name)?.config.connection as
+    { port?: number | string; database?: string } | undefined
+
+  const stop = (reason: string): never => {
+    throw new Error(
+      `Batería detenida: la conexión "${name}" no es la base de pruebas (${reason}). ` +
+        `Revisa backend/.env.test y que no haya DB_* exportadas en la terminal.`
+    )
+  }
+
+  if (Number(config?.port) !== EXPECTED_PORT) {
+    stop(`DB_PORT es ${config?.port}, se esperaba ${EXPECTED_PORT}`)
+  }
+  if (config?.database !== EXPECTED_DATABASE) {
+    stop(`DB_DATABASE es ${config?.database}, se esperaba ${EXPECTED_DATABASE}`)
+  }
+
+  const current = await db.rawQuery('select current_database() as name')
+  const currentName = current.rows[0]?.name
+  if (currentName !== EXPECTED_DATABASE) {
+    stop(`la base conectada es ${currentName}`)
+  }
+
+  const dev = await db.rawQuery('select 1 from pg_database where datname = ?', [DEV_DATABASE])
+  if (dev.rows.length > 0) {
+    stop(
+      `el servidor contiene la base "${DEV_DATABASE}" de desarrollo: es el servicio db, no db-test`
+    )
+  }
 }
 
 /**
