@@ -39,6 +39,11 @@ jobs:
       APP_KEY: clave-de-ci-sin-valor-secreto
       APP_URL: http://127.0.0.1:3333
       SESSION_DRIVER: memory
+      DB_HOST: 127.0.0.1
+      DB_PORT: 54410
+      DB_USER: flowsync
+      DB_PASSWORD: flowsync
+      DB_DATABASE: flowsync
     steps:
       - uses: actions/checkout@v7
 
