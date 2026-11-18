@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean db-up db-down migrate-test test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,7 +22,7 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-13s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
@@ -54,6 +54,10 @@ env:
 	else \
 		echo "📝 $(FRONTEND)/.env ya existe, no se toca."; \
 	fi
+	@if ! grep -q '^DB_HOST=' $(BACKEND)/.env; then \
+		echo "📝 Añadiendo a $(BACKEND)/.env las variables DB_* de .env.example..."; \
+		{ echo ""; grep -E '^(# Database|DB_)' $(BACKEND)/.env.example; } >> $(BACKEND)/.env; \
+	fi
 	@if grep -Eq '^APP_KEY=.+' $(BACKEND)/.env; then \
 		echo "🔑 APP_KEY ya definida, no se regenera."; \
 	else \
@@ -61,9 +65,37 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
-	@echo "🗃️  Ejecutando migraciones..."
+# ---------------------------------------------------------------------------
+# base de datos (PostgreSQL en Docker, ver compose.yaml)
+# ---------------------------------------------------------------------------
+
+# `--wait` no vuelve hasta que los healthchecks dan los dos servicios por
+# sanos, así que todo lo que dependa de db-up ya encuentra la base aceptando
+# conexiones. Es idempotente: con las bases ya arriba, vuelve enseguida.
+db-up: ## Levanta las bases de desarrollo (54410) y pruebas (54411)
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@echo "🐘 Levantando PostgreSQL (db y db-test) y esperando a que estén sanas..."
+	@docker compose up -d --wait db db-test
+
+# La de pruebas no tiene volumen: al pararla se pierde todo, y es a propósito.
+# La de desarrollo conserva sus datos en el volumen db-data.
+db-down: ## Para las bases (la de pruebas pierde sus datos)
+	@docker compose down
+
+migrate: db-up ## Migra la base de desarrollo
+	@echo "🗃️  Ejecutando migraciones en desarrollo..."
 	@cd $(BACKEND) && node ace migration:run
+
+# NODE_ENV=test hace que AdonisJS cargue .env.test encima de .env, y con él la
+# conexión a db-test.
+migrate-test: db-up ## Migra la base de pruebas
+	@echo "🗃️  Ejecutando migraciones en pruebas..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# db-test vive en memoria: tras cada db-down vuelve vacía, así que se migra
+# siempre antes de correr la batería.
+test: migrate-test ## Corre la batería de pruebas del backend contra db-test
+	@cd $(BACKEND) && npm test
 
 # ---------------------------------------------------------------------------
 # start
@@ -91,7 +123,7 @@ migrate:
 # delante a él también. Aislar los servidores en su propio grupo con `set -m`
 # no vale: los dejaría en segundo plano y el primer `read` de stdin les
 # provocaría un SIGTTIN, colgando el "Press h" de Adonis y los atajos de Vite.
-start: ## Levanta backend y frontend a la vez
+start: db-up ## Levanta las bases, el backend y el frontend
 	@if [ ! -d $(BACKEND)/node_modules ] || [ ! -d $(FRONTEND)/node_modules ]; then \
 		echo "❌ Faltan dependencias. Ejecuta primero: make setup"; exit 1; \
 	fi
@@ -112,8 +144,8 @@ start: ## Levanta backend y frontend a la vez
 # clean
 # ---------------------------------------------------------------------------
 
-clean: ## Borra node_modules y la base de datos SQLite
+clean: ## Borra node_modules y las bases de datos (también el volumen)
 	@echo "🧹 Limpiando..."
 	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules
-	@rm -f $(BACKEND)/tmp/db.sqlite3 $(BACKEND)/tmp/db.sqlite3-wal $(BACKEND)/tmp/db.sqlite3-shm
+	@docker compose down -v
 	@echo "✅ Listo. Vuelve a ejecutar: make setup"
