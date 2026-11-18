@@ -1,0 +1,45 @@
+# FlowSync — bases de datos PostgreSQL 17 (con pgvector) para desarrollo y pruebas.
+#
+#   make db-up     arranca las dos y espera a que acepten conexiones
+#   make db-down   las detiene
+#
+# Las credenciales son de desarrollo local, no secretos: coinciden con
+# backend/.env.example (db) y backend/.env.test (db-test).
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_dev
+    ports:
+      - '54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync_dev']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '54411:5432'
+    # Sin volumen: los datos viven en memoria y desaparecen al parar el
+    # contenedor, así que ninguna ejecución hereda el estado de la anterior.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync_test']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  db-data:

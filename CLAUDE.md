@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FlowSync: proyecto de práctica del curso (gestión de tareas en equipo). Monorepo sin workspaces ni `package.json` raíz — **todos los comandos se ejecutan desde `backend/` o desde `frontend/`**.
 
-- `backend/` — API AdonisJS 7 + Lucid 22 + SQLite, escucha en `http://localhost:3333`
+- `backend/` — API AdonisJS 7 + Lucid 22 + PostgreSQL 17 (Docker, `compose.yaml` en la raíz), escucha en `http://localhost:3333`
 - `frontend/` — React 19 + Vite 8, escucha en `http://localhost:5173`
 
 La rama `s1/start` es el punto de partida de los alumnos; `main` es la base del repo cliente.
@@ -18,7 +18,9 @@ La rama `s1/start` es el punto de partida de los alumnos; `main` es la base del 
 ```bash
 npm install
 cp .env.example .env && node ace generate:key   # solo la primera vez
-node ace migration:run                          # crea tmp/db.sqlite3 y regenera database/schema.ts
+docker compose up -d --wait                     # o `make db-up` desde la raíz
+node ace migration:run                          # migra la base de desarrollo y regenera database/schema.ts
+NODE_ENV=test node ace migration:run            # migra la base de pruebas (o `make migrate` para las dos)
 npm run dev                                     # node ace serve --hmr
 npm test                                        # node ace test
 npm run openapi:generate                        # escribe el documento OpenAPI en docs/api/openapi.json
@@ -38,7 +40,9 @@ node ace test --groups=... --tags=... --failed --watch
 node ace make:test --suite=functional # scaffolding de un fichero de test
 ```
 
-Ojo con la BD en tests: `config/database.ts` define una única conexión SQLite apuntando a `app.tmpPath('db.sqlite3')` sin override por entorno, así que las suites functional pegan contra el **mismo fichero** que el servidor de desarrollo. `.env.test` solo cambia `SESSION_DRIVER=memory`. Si añades tests que escriben, aísla con los hooks de `testUtils.db()` (truncate / transacción global) o el estado se filtra entre runs.
+Bases de datos: `compose.yaml` (raíz) define dos PostgreSQL 17 con pgvector (`pgvector/pgvector:pg17`): `db` (desarrollo, puerto 54410, volumen `db-data`) y `db-test` (pruebas, puerto 54411, **en memoria vía tmpfs**: al pararla se pierde todo). `.env` apunta a `db`; `.env.test`, que Adonis solo carga con `NODE_ENV=test`, sobrescribe `DB_PORT`/`DB_DATABASE` para apuntar a `db-test`. Como `db-test` arranca vacía, hay que migrarla antes de los tests: `make test` (desde la raíz) arranca las bases, migra `db-test` y lanza la batería. Los tests existentes aíslan con `testUtils.db().withGlobalTransaction()`; mantén ese patrón en los nuevos. El driver `pg` está configurado en `config/database.ts` para devolver las columnas `date` como texto ISO (como hacía SQLite), no como `Date`.
+
+La conexión `sqlite` (`tmp/db.sqlite3`) sigue declarada en `config/database.ts`, ya no por defecto y sin generación de esquema, solo para comparar con la base original (`node ace migration:status --connection=sqlite`). `make clean` borra ese fichero.
 
 Otros comandos útiles: `node ace list:routes`, `node ace make:controller|model|migration|validator|transformer|service`, `node ace migration:fresh`, `node ace repl`.
 

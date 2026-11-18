@@ -1,6 +1,6 @@
 # FlowSync — atajos de desarrollo.
 #
-# Requisitos: Node.js + npm y GNU Make.
+# Requisitos: Node.js + npm, GNU Make y Docker (con Compose v2).
 #   - macOS:        make viene con las Command Line Tools de Xcode.
 #   - Linux / WSL:  sudo apt install make   (o el equivalente de tu distro)
 #
@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean db-up db-down migrate-test test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,14 +22,14 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-13s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
 # setup
 # ---------------------------------------------------------------------------
 
-setup: install env migrate ## Deja el proyecto listo para arrancar
+setup: install env db-up migrate ## Deja el proyecto listo para arrancar
 	@echo ""
 	@echo "✅ Setup completado. Arranca todo con: make start"
 
@@ -61,9 +61,42 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
-	@echo "🗃️  Ejecutando migraciones..."
+migrate: ## Ejecuta las migraciones en la base de desarrollo y en la de pruebas
+	@echo "🗃️  Ejecutando migraciones en desarrollo (db, puerto 54410)..."
 	@cd $(BACKEND) && node ace migration:run
+	@$(MAKE) --no-print-directory migrate-test
+
+# NODE_ENV=test hace que Adonis cargue backend/.env.test, que apunta a db-test.
+migrate-test:
+	@echo "🗃️  Ejecutando migraciones en pruebas (db-test, puerto 54411)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# ---------------------------------------------------------------------------
+# bases de datos (Docker)
+# ---------------------------------------------------------------------------
+
+# `--wait` no vuelve hasta que el healthcheck de los dos servicios pasa, es
+# decir, hasta que ambas bases aceptan conexiones.
+db-up: ## Arranca PostgreSQL de desarrollo y de pruebas y espera a que estén listas
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@echo "🐘 Arrancando db (54410) y db-test (54411)..."
+	@docker compose up -d --wait db db-test
+
+# db-test no tiene volumen: al detenerla se pierden sus datos (es lo buscado).
+# Los de desarrollo se conservan en el volumen db-data.
+db-down: ## Detiene las bases de datos (los datos de pruebas se pierden)
+	@echo "🐘 Deteniendo las bases de datos..."
+	@docker compose down
+
+# ---------------------------------------------------------------------------
+# test
+# ---------------------------------------------------------------------------
+
+# La base de pruebas vive en memoria: si se ha reiniciado, está vacía, así que
+# se migra siempre antes de lanzar la batería (si ya está al día, no hace nada).
+test: db-up migrate-test ## Lanza las pruebas del backend contra db-test
+	@echo "🧪 Lanzando las pruebas..."
+	@cd $(BACKEND) && npm test
 
 # ---------------------------------------------------------------------------
 # start
