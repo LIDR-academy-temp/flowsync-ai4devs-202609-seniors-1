@@ -1,3 +1,4 @@
+import env from '#start/env'
 import app from '@adonisjs/core/services/app'
 import { defineConfig } from '@adonisjs/lucid'
 
@@ -5,23 +6,23 @@ const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
    */
-  connection: 'sqlite',
+  connection: 'postgres',
 
   connections: {
     /**
-     * SQLite connection (default).
+     * PostgreSQL connection (default). En desarrollo apunta a `db` (compose.yaml,
+     * puerto 54410); en test, `.env.test` la redirige a `db-test` (54411).
      */
-    sqlite: {
-      client: 'better-sqlite3',
+    postgres: {
+      client: 'pg',
 
       connection: {
-        filename: app.tmpPath('db.sqlite3'),
+        host: env.get('DB_HOST'),
+        port: env.get('DB_PORT'),
+        user: env.get('DB_USER'),
+        password: env.get('DB_PASSWORD').release(),
+        database: env.get('DB_DATABASE'),
       },
-
-      /**
-       * Required by Knex for SQLite defaults.
-       */
-      useNullAsDefault: true,
 
       migrations: {
         /**
@@ -46,27 +47,9 @@ const dbConfig = defineConfig({
          */
         rulesPaths: ['./database/schema_rules.js'],
       },
-    },
 
-    /**
-     * PostgreSQL connection.
-     * Install package to switch: npm install pg
-     */
-    // pg: {
-    //   client: 'pg',
-    //   connection: {
-    //     host: env.get('DB_HOST'),
-    //     port: env.get('DB_PORT'),
-    //     user: env.get('DB_USER'),
-    //     password: env.get('DB_PASSWORD'),
-    //     database: env.get('DB_DATABASE'),
-    //   },
-    //   migrations: {
-    //     naturalSort: true,
-    //     paths: ['database/migrations'],
-    //   },
-    //   debug: app.inDev,
-    // },
+      debug: app.inDev,
+    },
 
     /**
      * MySQL / MariaDB connection.
@@ -78,7 +61,7 @@ const dbConfig = defineConfig({
     //     host: env.get('DB_HOST'),
     //     port: env.get('DB_PORT'),
     //     user: env.get('DB_USER'),
-    //     password: env.get('DB_PASSWORD'),
+    //     password: env.get('DB_PASSWORD').release(),
     //     database: env.get('DB_DATABASE'),
     //   },
     //   migrations: {
@@ -98,7 +81,7 @@ const dbConfig = defineConfig({
     //     server: env.get('DB_HOST'),
     //     port: env.get('DB_PORT'),
     //     user: env.get('DB_USER'),
-    //     password: env.get('DB_PASSWORD'),
+    //     password: env.get('DB_PASSWORD').release(),
     //     database: env.get('DB_DATABASE'),
     //   },
     //   migrations: {
