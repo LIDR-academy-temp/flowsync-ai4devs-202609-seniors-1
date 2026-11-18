@@ -1,15 +1,40 @@
 import app from '@adonisjs/core/services/app'
+import env from '#start/env'
 import { defineConfig } from '@adonisjs/lucid'
 
 const dbConfig = defineConfig({
   /**
    * Default connection used for all queries.
    */
-  connection: 'sqlite',
+  connection: 'pg',
 
   connections: {
     /**
-     * SQLite connection (default).
+     * PostgreSQL connection (default). Las bases las levanta `compose.yaml`
+     * en la raíz del repo: desarrollo en el 54410 (`.env`) y pruebas en el
+     * 54411 (`.env.test`).
+     */
+    pg: {
+      client: 'pg',
+      connection: {
+        host: env.get('DB_HOST'),
+        port: env.get('DB_PORT'),
+        user: env.get('DB_USER'),
+        password: env.get('DB_PASSWORD'),
+        database: env.get('DB_DATABASE'),
+      },
+      migrations: {
+        naturalSort: true,
+        paths: ['database/migrations'],
+      },
+      schemaGeneration: {
+        enabled: true,
+        rulesPaths: ['./database/schema_rules.js'],
+      },
+    },
+
+    /**
+     * SQLite connection (secundaria; ya no es la conexión por defecto).
      */
     sqlite: {
       client: 'better-sqlite3',
@@ -47,26 +72,6 @@ const dbConfig = defineConfig({
         rulesPaths: ['./database/schema_rules.js'],
       },
     },
-
-    /**
-     * PostgreSQL connection.
-     * Install package to switch: npm install pg
-     */
-    // pg: {
-    //   client: 'pg',
-    //   connection: {
-    //     host: env.get('DB_HOST'),
-    //     port: env.get('DB_PORT'),
-    //     user: env.get('DB_USER'),
-    //     password: env.get('DB_PASSWORD'),
-    //     database: env.get('DB_DATABASE'),
-    //   },
-    //   migrations: {
-    //     naturalSort: true,
-    //     paths: ['database/migrations'],
-    //   },
-    //   debug: app.inDev,
-    // },
 
     /**
      * MySQL / MariaDB connection.
