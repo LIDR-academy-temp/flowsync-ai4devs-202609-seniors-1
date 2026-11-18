@@ -1,0 +1,53 @@
+# FlowSync — bases de datos locales.
+#
+# Dos PostgreSQL 17 con pgvector en la imagen (la extensión no se activa: no
+# hay ningún `CREATE EXTENSION`). Las credenciales son de juguete y los puertos
+# solo escuchan en 127.0.0.1, por eso pueden ir versionadas aquí.
+#
+#   db       desarrollo  → 127.0.0.1:54410, datos en el volumen `flowsync-db-data`
+#   db-test  pruebas     → 127.0.0.1:54411, datos en tmpfs: cada arranque empieza vacío
+#
+# No se usa el 5432 a propósito: quien tenga un PostgreSQL propio ahí se lo
+# encontraría ocupado.
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync
+    ports:
+      - '127.0.0.1:54410:5432'
+    volumes:
+      - flowsync-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      # El primer arranque inicializa el clúster y reinicia el servidor; mientras
+      # tanto rechaza conexiones, y eso no debe contar como fallo.
+      start_period: 20s
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '127.0.0.1:54411:5432'
+    # Sin volumen: el directorio de datos vive en memoria para que ninguna
+    # ejecución de la suite herede lo que dejó la anterior.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+volumes:
+  flowsync-db-data:

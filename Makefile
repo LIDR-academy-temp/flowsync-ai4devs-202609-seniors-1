@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean db-up db-test-up db-down test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,7 +22,7 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-11s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
@@ -61,9 +61,44 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
-	@echo "🗃️  Ejecutando migraciones..."
+# Migra las dos bases: primero la de desarrollo y después la de pruebas, que
+# toma su puerto y su nombre de `backend/.env.test` al correr con NODE_ENV=test.
+migrate: db-up ## Migra las dos bases (desarrollo y pruebas)
+	@echo "🗃️  Migrando la base de desarrollo (db, 54410)..."
 	@cd $(BACKEND) && node ace migration:run
+	@echo "🗃️  Migrando la base de pruebas (db-test, 54411)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# ---------------------------------------------------------------------------
+# bases de datos (compose.yaml)
+# ---------------------------------------------------------------------------
+
+# `--wait` no vuelve hasta que la comprobación de salud dice que la base acepta
+# conexiones: sin eso, la primera migración tras un arranque en frío choca con
+# un servidor que todavía está inicializando.
+db-up: ## Levanta las dos bases y espera a que estén sanas
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@docker compose up -d --wait
+
+db-test-up: ## Levanta solo la base de pruebas y espera a que esté sana
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@docker compose up -d --wait db-test
+
+# Sin `-v`: el volumen de la base de desarrollo se conserva.
+db-down: ## Para las dos bases (conserva los datos de desarrollo)
+	@docker compose down
+
+# ---------------------------------------------------------------------------
+# test
+# ---------------------------------------------------------------------------
+
+# Solo necesita la base de pruebas. Migrarla cada vez es idempotente, y además
+# necesario: vive en memoria y vuelve vacía tras cada arranque del contenedor.
+test: db-test-up ## Corre la suite del backend contra la base de pruebas
+	@echo "🗃️  Migrando la base de pruebas (db-test, 54411)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+	@echo "🧪 Corriendo la suite..."
+	@cd $(BACKEND) && node ace test
 
 # ---------------------------------------------------------------------------
 # start
@@ -112,8 +147,7 @@ start: ## Levanta backend y frontend a la vez
 # clean
 # ---------------------------------------------------------------------------
 
-clean: ## Borra node_modules y la base de datos SQLite
+clean: ## Borra node_modules
 	@echo "🧹 Limpiando..."
 	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules
-	@rm -f $(BACKEND)/tmp/db.sqlite3 $(BACKEND)/tmp/db.sqlite3-wal $(BACKEND)/tmp/db.sqlite3-shm
 	@echo "✅ Listo. Vuelve a ejecutar: make setup"

@@ -31,7 +31,9 @@ jobs:
       # variables al arrancar, así que sin ellas el comando ni siquiera llega a
       # construir el documento. Ninguna es un secreto ni tiene que serlo: la
       # comprobación no abre el puerto, no toca la base de datos y no firma
-      # nada. `APP_KEY` existe solo para que la validación pase.
+      # nada. `APP_KEY` existe solo para que la validación pase, y las `DB_*`
+      # igual: Lucid no abre la conexión hasta la primera consulta, así que no
+      # hace falta ninguna base levantada en el runner.
       NODE_ENV: test
       PORT: 3333
       HOST: 127.0.0.1
@@ -39,6 +41,11 @@ jobs:
       APP_KEY: clave-de-ci-sin-valor-secreto
       APP_URL: http://127.0.0.1:3333
       SESSION_DRIVER: memory
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USER: ci
+      DB_PASSWORD: ci-sin-valor-secreto
+      DB_DATABASE: ci
     steps:
       - uses: actions/checkout@v7
 
