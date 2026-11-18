@@ -1,0 +1,48 @@
+# Bases de datos de FlowSync: PostgreSQL 17 (con pgvector) para desarrollo y para pruebas.
+#
+# Puertos 54410/54411 y no 5432, para no chocar con un PostgreSQL local.
+# Credenciales solo de desarrollo: no protegen nada fuera de esta máquina.
+#
+# El healthcheck pregunta por TCP (-h 127.0.0.1) a propósito: durante la
+# inicialización la imagen levanta un servidor temporal que solo escucha por
+# socket Unix, así que un pg_isready sin -h daría «sano» antes de tiempo.
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync
+    ports:
+      - '54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U flowsync -d flowsync']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  # Efímera a propósito: sin volumen, los datos viven en memoria (tmpfs) y
+  # desaparecen al parar el contenedor. Cada arranque empieza de cero.
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '54411:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U flowsync -d flowsync_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  db-data:
