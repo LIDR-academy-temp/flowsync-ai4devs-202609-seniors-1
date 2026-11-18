@@ -1,6 +1,6 @@
 # FlowSync — atajos de desarrollo.
 #
-# Requisitos: Node.js + npm y GNU Make.
+# Requisitos: Node.js + npm, GNU Make y Docker (con el plugin compose).
 #   - macOS:        make viene con las Command Line Tools de Xcode.
 #   - Linux / WSL:  sudo apt install make   (o el equivalente de tu distro)
 #
@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean db-up db-down db-migrate test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,7 +22,7 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-10s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
@@ -61,9 +61,40 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
+migrate: db-up
 	@echo "🗃️  Ejecutando migraciones..."
 	@cd $(BACKEND) && node ace migration:run
+
+# ---------------------------------------------------------------------------
+# bases de datos (PostgreSQL en Docker, ver compose.yaml)
+# ---------------------------------------------------------------------------
+
+# `--wait` no devuelve el control hasta que los dos servicios pasan su
+# healthcheck (pg_isready), así que lo que venga detrás ya puede conectar.
+db-up: ## Arranca las bases de desarrollo (54410) y pruebas (54411)
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@echo "🐘 Arrancando PostgreSQL (db y db-test)..."
+	@docker compose up -d --wait db db-test
+
+# La base de pruebas va en memoria: al pararla se pierde y hay que volver a
+# migrarla (`make test` ya lo hace). La de desarrollo conserva su volumen.
+db-down: ## Para las dos bases (la de pruebas se vacía)
+	@echo "🛑 Parando PostgreSQL..."
+	@docker compose down
+
+db-migrate: db-up ## Migra la base de desarrollo y la de pruebas
+	@echo "🗃️  Migrando la base de desarrollo..."
+	@cd $(BACKEND) && node ace migration:run
+	@echo "🗃️  Migrando la base de pruebas..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# `node ace test` arranca con NODE_ENV=test, así que lee `.env.test` y se
+# conecta a db-test (54411), nunca a la de desarrollo.
+test: db-up ## Lanza las pruebas del backend contra la base de pruebas
+	@echo "🗃️  Migrando la base de pruebas..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+	@echo "🧪 Lanzando las pruebas del backend..."
+	@cd $(BACKEND) && npm test
 
 # ---------------------------------------------------------------------------
 # start

@@ -1,0 +1,41 @@
+# FlowSync — bases de datos PostgreSQL para desarrollo y pruebas.
+#
+# Las credenciales son de mentira y solo valen en local. Arranca las dos con
+# `make db-up`, que espera a que ambas pasen el healthcheck.
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_dev
+    ports:
+      - "54410:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowsync -d flowsync_dev"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # La de pruebas vive en memoria: sin volumen, se vacía al parar el contenedor.
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - "54411:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowsync -d flowsync_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  db-data:
