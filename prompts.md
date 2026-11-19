@@ -18,6 +18,18 @@ distinto, y sin este archivo no se distinguen.
 
 ---
 
+## Prompt 0
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+lee el formato y el fichero prompts.md para que guardes los prompts que crearemos de ahora en adelante. Sustituye ## Prompt N por un incrementarl por cada prompt. Dentro de **Modelo:** pon el modelo actual y en **Herramienta:** el cliente actual.
+Luego vendrá el prompt que deberás guardarlo tal y como se pide.
+```
+
+**Qué salió:** funcionó a la primera: leí el formato y quedé a la espera del prompt.
+
 ## Prompt 1
 
 **Modelo:** Opus 5.5
@@ -37,6 +49,8 @@ En el proyecto actual vamos a migrar el proyecto de SQLite a PostgreSQL en Docke
 - Nunca debes tocar las migraciones existentes, hay que conservarlas tal y como están pero antes documenta si propones modificar alguna. Lo pondremos como hallazgo en el fichero @docs/migration.md
 ```
 
+**Qué salió:** funcionó: compose, driver pg, .env.test, Makefile y docs, con 23/23 en verde. Tuve que sortear el credsStore de Docker y un index.lock huérfano; apareció el hallazgo de due_date. Commiteé por la regla de CLAUDE.md.
+
 ## Prompt 2
 
 **Modelo:** Opus 5.5
@@ -45,6 +59,8 @@ En el proyecto actual vamos a migrar el proyecto de SQLite a PostgreSQL en Docke
 ```
 muestrame las lineas que has metido en el makefile
 ```
+
+**Qué salió:** funcionó a la primera: enseñé el diff del Makefile.
 
 ## Prompt 3
 
@@ -55,6 +71,8 @@ muestrame las lineas que has metido en el makefile
 como llamamos para lanzar las pruebas mediante el makefile?
 ```
 
+**Qué salió:** funcionó a la primera: `make test`.
+
 ## Prompt 4
 
 **Modelo:** Opus 5.5
@@ -64,50 +82,17 @@ como llamamos para lanzar las pruebas mediante el makefile?
 ejecuta los test nuevamente
 ```
 
+**Qué salió:** funcionó a la primera: `make test`, 23/23 en verde.
+
 ## Prompt 5
 
 **Modelo:** Opus 5.5
 **Herramienta:** Claude Code
 
 ```
-Haz esta parte aunque la migración quede incompleta. Si las pruebas vuelven a pasar, sigue con estas tres comprobaciones y anota lo que observes.
 1. Ejecuta la comprobación de tipos ((cd backend && npm run typecheck)) y anota si pasa o falla. Las dos respuestas son normales, y las dos enseñan algo.
 2. Compara el archivo de tipos generado (backend/database/schema.ts) con el de la rama de partida. El diff puede mostrar declaraciones cambiadas o salir vacío, y las dos salidas son normales. Si hay cambios, indica qué declaraciones cambiaron de tipo y anota, para cada una, el tipo anterior y el nuevo. Si el diff está vacío, busca qué fija esos tipos al cambiar de motor: vacío no significa que no haya cambiado nada, sino que lo que cambió no está en lo que el proyecto declara.
 3. Busca cómo decide el proyecto si una tarea está vencida. Lee el comentario que explica por qué funciona esa comparación y contrástalo con lo que encontraste en el paso anterior. Indica si sigue siendo válido y compruébalo con una tarea que ya debería estar vencida, no solo leyendo el código.
 ```
 
-## Prompt 6
-
-**Modelo:** Opus 5.5
-**Herramienta:** Claude Code
-
-```
-para
-```
-
-## Prompt 7
-
-**Modelo:** Opus 5.5
-**Herramienta:** Claude Code
-
-```
-guarda esto en el fichero HALLAZGOS.md como parte B
-```
-
-## Prompt 8
-
-**Modelo:** Opus 5.5
-**Herramienta:** Claude Code
-
-```
-pon el resultado del prompt 1 en Hallazgos como Parte A
-```
-
-## Prompt 9
-
-**Modelo:** Opus 5.5
-**Herramienta:** Claude Code
-
-```
-la tienes arriba en esta conversacion
-```
+**Qué salió:** funcionó: typecheck en verde, diff vacío explicado por schema_rules.ts e isOverdue roto, comprobado contra la API en UTC y en Madrid; anotado en docs/migration.md.

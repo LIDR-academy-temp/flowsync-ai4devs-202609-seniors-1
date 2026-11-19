@@ -11,27 +11,27 @@ Escribe **una sola línea por punto**, con tus palabras y con lo que mediste, no
 Cuántas filas cambian de valor en tu cambio de esquema, medido con una consulta, y en qué rama del
 árbol de reversibilidad cae. Si tu migración no toca datos, dilo tal cual: también es una respuesta.
 
--
+- **0 filas**: no se añade ni se toca ninguna migración y no se trasladan datos. Medido con `select count(*), count(due_date) from tasks` (más `count(*)` de `users`), que da 0 en el SQLite antiguo (`backend/tmp/db.sqlite3`) y 0 en `flowsync_dev`. Cae en la rama de **no toca datos** y se deshace volviendo a la configuración `better-sqlite3`; lo único que no vuelve solo es lo que se escriba en PostgreSQL a partir de ahora.
 
 ## 2. Lo que la batería de pruebas no podía ver
 
 Una cosa que la batería de pruebas no podía ver. Si no encontraste ninguna, escribe qué buscaste y dónde.
 
--
+- Al releer de la base una tarea vencida, `isOverdue` da `false`. Con `pg`, `due_date` llega como `Date`, `isOverdueOn` compara `Date < string` y siempre sale `false`, y `dueDate` pasa a ser un instante (`2019-12-31T23:00:00.000Z` en Europe/Madrid). Las 23 pruebas siguen en verde porque ninguna cubre `due_date` ni `isOverdue`; ni el typecheck ni `schema.ts` lo ven, porque `schema_rules.ts` fija `string`.
 
 ## 3. Tu duda
 
 De qué dudaste, o qué no pudiste comprobar.
 
--
+- No apliqué ni comprobé la corrección (`pg.types.setTypeParser(1082, v => v)` más una prueba que relea la tarea). Tampoco miré cómo pinta el frontend un `dueDate` convertido en instante. Y no sé si «no toca datos» es el nombre exacto de la rama en el árbol de la lección: el 0 sale de bases vacías, y con datos reales cambiaría la representación de cada fila con `due_date`.
 
 ---
 
 ## Parte A: cambio de motor
 
-Migración de SQLite a PostgreSQL en Docker hecha en `motor-afm` (commit `6f2f6bc`). **Ninguna migración
+Migración de SQLite a PostgreSQL en Docker. **Ninguna migración
 existente tocada.** Detalle en [`docs/migration.md`](docs/migration.md) y atajos en
-[`docs/restar_commands.md`](docs/restar_commands.md).
+[`docs/restart_commands.md`](docs/restart_commands.md).
 
 ### Qué se ha hecho
 
