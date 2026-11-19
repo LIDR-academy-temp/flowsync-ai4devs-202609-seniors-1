@@ -410,3 +410,14 @@ En GitHub, abre el PR desde tu fork. Antes de crearlo, comprueba tres cosas:
 ````
 
 **Qué salió:** el push a `origin` funcionó, pero el PR falló: ese fork lo es de `LIDR-academy`, no de `LIDR-academy-temp`, y GitHub no deja abrir el PR entre redes distintas. Respondí «Sí, desde flowsync-m8» y se abrió el PR #80 desde `RolandMartinez/flowsync-m8:motor-rm` hacia `s10/start`, con 11 archivos y ninguno de `database/migrations`.
+
+## Prompt 12
+
+**Modelo:** Claude Opus 5.5
+**Herramienta:** Claude Code (app de escritorio)
+
+```
+Sí, commit y push
+```
+
+**Qué salió:** commit `7cb6a9f` con el Prompt 11, subido a `flowsync-m8` (de donde sale el PR) y a `origin`. El PR #80 pasó a tener 3 commits y los mismos 11 archivos, ninguno de migraciones.
