@@ -75,3 +75,21 @@ Haz esta parte aunque la migración quede incompleta. Si las pruebas vuelven a p
 2. Compara el archivo de tipos generado (backend/database/schema.ts) con el de la rama de partida. El diff puede mostrar declaraciones cambiadas o salir vacío, y las dos salidas son normales. Si hay cambios, indica qué declaraciones cambiaron de tipo y anota, para cada una, el tipo anterior y el nuevo. Si el diff está vacío, busca qué fija esos tipos al cambiar de motor: vacío no significa que no haya cambiado nada, sino que lo que cambió no está en lo que el proyecto declara.
 3. Busca cómo decide el proyecto si una tarea está vencida. Lee el comentario que explica por qué funciona esa comparación y contrástalo con lo que encontraste en el paso anterior. Indica si sigue siendo válido y compruébalo con una tarea que ya debería estar vencida, no solo leyendo el código.
 ```
+
+## Prompt 6
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+para
+```
+
+## Prompt 7
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+guarda esto en el fichero HALLAZGOS.md como parte B
+```
