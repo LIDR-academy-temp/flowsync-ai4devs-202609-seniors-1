@@ -93,3 +93,21 @@ para
 ```
 guarda esto en el fichero HALLAZGOS.md como parte B
 ```
+
+## Prompt 8
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+pon el resultado del prompt 1 en Hallazgos como Parte A
+```
+
+## Prompt 9
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+la tienes arriba en esta conversacion
+```

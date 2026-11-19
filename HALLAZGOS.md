@@ -27,6 +27,44 @@ De qué dudaste, o qué no pudiste comprobar.
 
 ---
 
+## Parte A: cambio de motor
+
+Migración de SQLite a PostgreSQL en Docker hecha en `motor-afm` (commit `6f2f6bc`). **Ninguna migración
+existente tocada.** Detalle en [`docs/migration.md`](docs/migration.md) y atajos en
+[`docs/restar_commands.md`](docs/restar_commands.md).
+
+### Qué se ha hecho
+
+- **`compose.yaml`**, sin clave `version:`, imagen `pgvector/pgvector:pg17`:
+  - `db`: desarrollo, puerto 54410, datos en el volumen `db-data`.
+  - `db-test`: pruebas, puerto 54411, en memoria (`tmpfs`), sin volumen.
+  - Las dos con healthcheck `pg_isready -h 127.0.0.1`. Los atajos arrancan con `docker compose up --wait`,
+    así que nada se conecta hasta que ambas aceptan conexiones.
+- **Driver**: `pg` sustituye a `better-sqlite3`. `config/database.ts` usa una única conexión `pg` que lee
+  `DB_*`, validadas al arrancar en `start/env.ts`.
+- **`backend/.env.test`** apunta la batería y su migración a `db-test`. El framework solo lo carga cuando
+  `NODE_ENV=test`.
+- **Makefile**: `db-up`, `db-down`, `db-migrate` (migra las dos bases), `db-reset-test` y `test`. `setup`
+  ahora levanta las bases antes de migrar.
+
+### Comprobado
+
+- Las dos bases arrancan `healthy`.
+- Tras `make db-down && make test`, `db-test` empieza vacía, se migra y pasan **23/23**. `db` conserva sus
+  datos.
+- `npm run typecheck` en verde y `backend/database/schema.ts` sin cambios.
+
+### Incidencias por el camino
+
+- La descarga de la imagen fallaba por `"credsStore": "desktop.exe"` en `~/.docker/config.json` de WSL. Se
+  descargó con una configuración vacía temporal (`DOCKER_CONFIG`), sin tocar la del usuario; lo definitivo es
+  quitar esa clave.
+- Un `.git/index.lock` vacío y sin ningún git en marcha bloqueaba el commit; se borró.
+- Siguen mencionando SQLite: `CLAUDE.md`, `docs/architecture.md`, `docs/capabilities/tasks/README.md` y un
+  comentario de `tests/functional/auth/signup.spec.ts`.
+
+---
+
 ## Parte B: qué se ha perdido
 
 Hecho con la batería en verde (`make test`: 23/23, contra `db-test` en 54411). Detalle completo en
