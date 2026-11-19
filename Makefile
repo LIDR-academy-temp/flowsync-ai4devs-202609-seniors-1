@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean db-up db-down db-migrate test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,14 +22,14 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-10s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
 # setup
 # ---------------------------------------------------------------------------
 
-setup: install env migrate ## Deja el proyecto listo para arrancar
+setup: install env db-up db-migrate ## Deja el proyecto listo para arrancar
 	@echo ""
 	@echo "✅ Setup completado. Arranca todo con: make start"
 
@@ -61,9 +61,40 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
+# Solo la base de desarrollo. Se mantiene para quien ya lo usaba.
+migrate: db-up
 	@echo "🗃️  Ejecutando migraciones..."
 	@cd $(BACKEND) && node ace migration:run
+
+# ---------------------------------------------------------------------------
+# Bases de datos (PostgreSQL en Docker, ver compose.yaml)
+# ---------------------------------------------------------------------------
+
+# `--wait` no vuelve hasta que el healthcheck de los dos servicios está en
+# verde, así que lo que venga detrás (las migraciones) no se encuentra la
+# conexión rechazada aunque sea el primer arranque y la base aún se esté
+# inicializando. Si un servicio no llega a sano, el comando falla.
+db-up: ## Arranca las bases de desarrollo (54410) y pruebas (54411)
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está en el PATH. ¿Está Docker en marcha?"; exit 1; }
+	@echo "🐘 Arrancando PostgreSQL (db y db-test) y esperando a que estén sanas..."
+	@docker compose up -d --wait db db-test
+
+db-down: ## Para las bases (la de pruebas se vacía; la de desarrollo, no)
+	@docker compose down
+
+# `NODE_ENV=test` hace que AdonisJS cargue `.env.test`, que apunta a db-test.
+db-migrate: db-up ## Ejecuta las migraciones en las dos bases
+	@echo "🗃️  Migrando la base de desarrollo (db)..."
+	@cd $(BACKEND) && node ace migration:run
+	@echo "🗃️  Migrando la base de pruebas (db-test)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# db-test vive en memoria y llega vacía después de cada arranque, así que se
+# migra antes de lanzar la batería.
+test: db-up ## Lanza la batería del backend contra la base de pruebas
+	@echo "🗃️  Migrando la base de pruebas (db-test)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+	@cd $(BACKEND) && npm test
 
 # ---------------------------------------------------------------------------
 # start
@@ -112,8 +143,8 @@ start: ## Levanta backend y frontend a la vez
 # clean
 # ---------------------------------------------------------------------------
 
-clean: ## Borra node_modules y la base de datos SQLite
+clean: ## Borra node_modules y las bases (incluido el volumen de desarrollo)
 	@echo "🧹 Limpiando..."
 	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules
-	@rm -f $(BACKEND)/tmp/db.sqlite3 $(BACKEND)/tmp/db.sqlite3-wal $(BACKEND)/tmp/db.sqlite3-shm
+	@docker compose down -v
 	@echo "✅ Listo. Vuelve a ejecutar: make setup"
