@@ -4,6 +4,8 @@ import app from '@adonisjs/core/services/app'
 import type { Config } from '@japa/runner/types'
 import { pluginAdonisJS } from '@japa/plugin-adonisjs'
 import { dbAssertions } from '@adonisjs/lucid/plugins/db'
+import db from '@adonisjs/lucid/services/db'
+import { MigrationRunner } from '@adonisjs/lucid/migration'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { authApiClient } from '@adonisjs/auth/plugins/api_client'
 import { sessionApiClient } from '@adonisjs/session/plugins/api_client'
@@ -41,7 +43,21 @@ export const plugins: Config['plugins'] = [
  * The teardown functions are executed after all the tests
  */
 export const runnerHooks: Required<Pick<Config, 'setup' | 'teardown'>> = {
-  setup: [],
+  /**
+   * db-test vive en memoria y llega vacía tras cada arranque, así que se migra
+   * antes de la batería. Si ya está migrada, no hace nada.
+   *
+   * Se usa `MigrationRunner` y no `testUtils.db().migrate()`: ese helper arranca
+   * un kernel de Ace dentro del proceso, que falla al cargar el comando
+   * `openapi_check` («Invalid URL») antes de llegar a migrar.
+   */
+  setup: [
+    async () => {
+      const migrator = new MigrationRunner(db, app, { direction: 'up', dryRun: false })
+      await migrator.run()
+      if (migrator.error) throw migrator.error
+    },
+  ],
   teardown: [],
 }
 

@@ -1,0 +1,49 @@
+# Bases de datos de FlowSync: una para desarrollo y otra para las pruebas.
+#
+#   make db-up     arranca las dos y no vuelve hasta que están sanas
+#   make db-down   las para (la de desarrollo conserva sus datos en el volumen)
+#
+# Puertos fuera del 5432 para no chocar con un PostgreSQL que ya tengas.
+
+x-postgres: &postgres
+  image: pgvector/pgvector:pg17
+  # La comprobación va por TCP (`-h 127.0.0.1`) y no por el socket Unix. En el
+  # primer arranque, el entrypoint levanta un servidor temporal que solo escucha
+  # en el socket mientras inicializa la base; un `pg_isready` por socket lo daría
+  # por listo y la primera migración se encontraría la conexión rechazada cuando
+  # ese servidor temporal se apaga para dar paso al definitivo.
+  healthcheck:
+    test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+    interval: 2s
+    timeout: 3s
+    retries: 30
+    start_period: 5s
+
+services:
+  db:
+    <<: *postgres
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync
+    ports:
+      - '54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  # Sin volumen: el directorio de datos vive en memoria (tmpfs) y desaparece al
+  # parar el contenedor, así que una ejecución de las pruebas nunca hereda los
+  # datos de la anterior.
+  db-test:
+    <<: *postgres
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '54411:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+
+volumes:
+  db-data:
