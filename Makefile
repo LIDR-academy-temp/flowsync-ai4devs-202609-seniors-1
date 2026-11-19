@@ -1,6 +1,6 @@
 # FlowSync — atajos de desarrollo.
 #
-# Requisitos: Node.js + npm y GNU Make.
+# Requisitos: Node.js + npm, GNU Make y Docker con Compose v2.
 #   - macOS:        make viene con las Command Line Tools de Xcode.
 #   - Linux / WSL:  sudo apt install make   (o el equivalente de tu distro)
 #
@@ -14,7 +14,8 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate clean \
+        db-up db-down db-reset-test db-migrate db-migrate-dev db-migrate-test test
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,14 +23,14 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-14s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
 # setup
 # ---------------------------------------------------------------------------
 
-setup: install env migrate ## Deja el proyecto listo para arrancar
+setup: install env db-up migrate ## Deja el proyecto listo para arrancar
 	@echo ""
 	@echo "✅ Setup completado. Arranca todo con: make start"
 
@@ -61,9 +62,47 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
-	@echo "🗃️  Ejecutando migraciones..."
+migrate: db-migrate
+
+# ---------------------------------------------------------------------------
+# bases de datos (PostgreSQL en Docker, ver compose.yaml)
+# ---------------------------------------------------------------------------
+
+# `--wait` no devuelve el control hasta que los dos servicios están `healthy`
+# (healthcheck con pg_isready). La primera vez la imagen crea la base y no
+# acepta conexiones mientras tanto: sin esperar, la migración siguiente fallaría
+# con conexión rechazada.
+db-up: ## Levanta db (54410) y db-test (54411) y espera a que estén sanas
+	@command -v docker >/dev/null 2>&1 || { echo "❌ Docker no está instalado."; exit 1; }
+	@echo "🐘 Levantando PostgreSQL (db:54410, db-test:54411)..."
+	@docker compose up -d --wait
+
+db-down: ## Para las dos bases (la de pruebas pierde sus datos)
+	@echo "🛑 Parando PostgreSQL..."
+	@docker compose down
+
+# db-test vive en tmpfs: recrear el contenedor la deja vacía.
+db-reset-test: ## Recrea db-test vacía y la migra
+	@docker compose up -d --wait --force-recreate db-test
+	@$(MAKE) --no-print-directory db-migrate-test
+
+db-migrate: db-migrate-dev db-migrate-test ## Migra las dos bases
+
+db-migrate-dev:
+	@echo "🗃️  Migrando base de desarrollo (db:54410)..."
 	@cd $(BACKEND) && node ace migration:run
+
+# NODE_ENV=test hace que el framework cargue backend/.env.test, que apunta a
+# db-test. Es el mismo fichero que usa la batería de pruebas.
+db-migrate-test:
+	@echo "🗃️  Migrando base de pruebas (db-test:54411)..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+# db-test es efímera: se migra siempre antes de lanzar la batería (si ya está
+# al día, migration:run no hace nada).
+test: db-up db-migrate-test ## Lanza la batería de pruebas del backend contra db-test
+	@echo "🧪 Lanzando pruebas..."
+	@cd $(BACKEND) && npm test
 
 # ---------------------------------------------------------------------------
 # start
@@ -112,8 +151,9 @@ start: ## Levanta backend y frontend a la vez
 # clean
 # ---------------------------------------------------------------------------
 
-clean: ## Borra node_modules y la base de datos SQLite
+# No toca las bases: los datos de desarrollo viven en el volumen `db-data` y
+# se borran solo a propósito con `docker compose down -v`.
+clean: ## Borra node_modules (las bases no se tocan)
 	@echo "🧹 Limpiando..."
 	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules
-	@rm -f $(BACKEND)/tmp/db.sqlite3 $(BACKEND)/tmp/db.sqlite3-wal $(BACKEND)/tmp/db.sqlite3-shm
 	@echo "✅ Listo. Vuelve a ejecutar: make setup"

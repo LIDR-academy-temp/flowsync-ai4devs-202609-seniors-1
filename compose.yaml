@@ -1,0 +1,56 @@
+# FlowSync — bases de datos PostgreSQL de desarrollo y de pruebas.
+#
+# Sin clave `version:`: está obsoleta y Compose imprime un aviso si aparece.
+#
+# Imagen pgvector/pgvector:pg17 = PostgreSQL 17 oficial + extensión `vector`.
+#
+# La primera vez que arranca, la imagen crea la base y NO acepta conexiones
+# mientras tanto (el initdb levanta un servidor temporal y lo reinicia). Por eso
+# cada servicio lleva healthcheck con `pg_isready` contra la base ya creada, y
+# los atajos del Makefile levantan con `docker compose up --wait`: no devuelven
+# el control hasta que los dos servicios están `healthy`.
+
+name: flowsync
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_dev
+    ports:
+      - '54410:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync_dev -h 127.0.0.1']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    restart: unless-stopped
+
+  db-test:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: flowsync
+      POSTGRES_PASSWORD: flowsync
+      POSTGRES_DB: flowsync_test
+    ports:
+      - '54411:5432'
+    # Efímera a propósito: datos en memoria (tmpfs), sin volumen. Cada
+    # arranque empieza vacío, así ninguna batería depende de la anterior.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      # `-h 127.0.0.1` fuerza TCP: durante el initdb el servidor temporal solo
+      # escucha por socket Unix, así que no da `healthy` antes de tiempo.
+      test: ['CMD-SHELL', 'pg_isready -U flowsync -d flowsync_test -h 127.0.0.1']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+volumes:
+  db-data:
