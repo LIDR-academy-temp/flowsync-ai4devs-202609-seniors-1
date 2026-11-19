@@ -22,14 +22,40 @@ Borra el ejemplo de abajo cuando escribas el primero.
 
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** sonnet 5.5 medium
 **Herramienta:** Claude Code
 
-```
-Este es el ejemplo. Bórralo.
+# Promt 1 
 
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
-```
+Migra este el proyecto de SQLite a PostgreSQL en Docker, con una base de datos para desarrollo y otra para pruebas. 
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+Con las siguientes restricciones 
+
+El archivo de Compose se llama compose.yaml y define dos servicios, db y db-test.
+
+Usa pgvector/pgvector:pg17, que incluye PostgreSQL 17 con la extensión pgvector.
+
+Usa los puertos 54410 para desarrollo y 54411 para pruebas. Así evitas un conflicto si ya tienes una instancia de PostgreSQL en el 5432.
+
+La base de pruebas va en memoria, sin volumen. Así, los datos de una ejecución no quedan guardados para la siguiente.
+
+Configura una comprobación de salud en ambos servicios. El arranque debe esperar a que las dos bases acepten conexiones. En el primer arranque, PostgreSQL todavía está inicializando la base cuando otros procesos pueden intentar conectarse.
+
+Omite la clave version: de compose.yaml. Está obsoleta y Docker muestra un aviso si la incluyes.
+
+Haz que la batería de pruebas se conecte a la base de pruebas mediante su propio archivo de entorno. El framework lo carga solo en ese entorno.
+
+Añade atajos en el Makefile para arrancar y detener las bases, ejecutar las migraciones en ambas y lanzar las pruebas, aun que considera que estamos sobre una maquina con sistema operativo de windows asi que preparame tambien un comando para windows
+
+
+# Promt 2
+
+Cuántas filas cambian de valor en tu cambio de esquema, medido con una consulta, y en qué rama del
+árbol de reversibilidad cae. Si tu migración no toca datos, dilo tal cual: también es una respuesta.
+
+# Promt 3
+
+Una cosa que la batería de pruebas no podía ver. Si no encontraste ninguna, escribe qué buscaste y dónde.
+
+# Promt 4
+De qué dudaste, o qué no pudiste comprobar.
