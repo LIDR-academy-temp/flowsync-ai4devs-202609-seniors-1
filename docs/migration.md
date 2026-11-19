@@ -52,6 +52,66 @@ Fecha: 2026-11-19. Rama: `motor-afm`.
 - Docs que siguen mencionando SQLite y quedan desactualizadas: `CLAUDE.md`, `docs/architecture.md`,
   `docs/capabilities/tasks/README.md`, comentario de `tests/functional/auth/signup.spec.ts`.
 
+## Comprobaciones tras la migración
+
+Hechas con la batería en verde (`make test`: 23/23).
+
+### 1. Comprobación de tipos
+
+`(cd backend && npm run typecheck)` → **pasa** (exit 0, sin errores).
+
+Qué enseña: TypeScript solo ve lo que declara `database/schema.ts`, y ese fichero no ha cambiado. El
+typecheck no puede detectar que el valor real que llega del driver ya no es del tipo declarado.
+
+### 2. Diff de `backend/database/schema.ts` contra la rama de partida
+
+`git diff s10/start -- backend/database/schema.ts` → **vacío** (0 líneas). Las migraciones tampoco cambian.
+
+Qué fija los tipos para que no cambien al cambiar de motor:
+
+- El generador de Lucid (`@adonisjs/lucid/build/src/orm/schema_generator/builder.js`) busca la regla de cada
+  columna en este orden: 1) columna de una tabla concreta, 2) tipo en una tabla concreta, 3) columna global,
+  4) clave primaria, 5) tipo global.
+- `database/schema_rules.ts` declara reglas de **columna de tabla** (la de mayor prioridad) para
+  `tasks.status` (`'pending' | 'in_progress' | 'done'`) y `tasks.due_date` (`string`). Ganan a cualquier
+  mapeo del motor: sin la regla, un `date` de PostgreSQL se declararía `DateTime` (luxon) con
+  `@column.date` (`rules.js`, `INTERNAL_TYPES.DATE`).
+- Esa regla pone `@column` **plano**, sin `prepare`/`consume`. Lucid entrega al modelo lo que devuelve el
+  driver sin transformarlo: con `better-sqlite3` era el texto `'2020-01-01'`; con `pg` es un `Date` (el
+  parser por defecto del OID 1082).
+- El resto de columnas no cambian porque el generador las mapea igual en los dos motores (`timestamp` →
+  `DateTime`, `increments` → `number`, `string`/`text` → `string`).
+
+Conclusión: el diff vacío no significa que nada haya cambiado. Lo que cambió es el **valor en tiempo de
+ejecución** de `dueDate`, y eso depende de la conexión, no del esquema declarado.
+
+### 3. Cómo se decide si una tarea está vencida
+
+`Task.isOverdueOn(referenceDay)` en `backend/app/models/task.ts` (lo usa `TaskDetailTransformer`):
+`this.dueDate < referenceDay`. El comentario dice:
+
+> Se compara texto contra texto porque dos fechas ISO comparadas así **son** la comparación de días del
+> calendario: no hay hora, ni huso, ni instante intermedio donde se cuele un día de más.
+
+**Ya no es verdad.** Con `pg`, `dueDate` es un `Date`: `Date < string` convierte la fecha a número y el
+texto a `NaN`, así que la comparación da **siempre `false`**. Y como el valor es un instante, el huso del
+proceso vuelve a entrar en juego.
+
+Comprobado contra la API de desarrollo con una tarea que ya debería estar vencida (`dueDate = 2020-01-01`,
+`today = 2026-11-19`, estado `pending`):
+
+| Huso del proceso | Paso | `dueDate` en la respuesta | `isOverdue` |
+|---|---|---|---|
+| UTC (`.env`) | `PUT /tasks/:id/due-date` (valor en memoria, texto) | `"2020-01-01"` | `true` |
+| UTC (`.env`) | `GET /tasks/:id?today=2026-11-19` (leído de BD) | `"2020-01-01T00:00:00.000Z"` | **`false`** |
+| `Europe/Madrid` | `PUT /tasks/:id/due-date` | `"2020-01-01"` | `true` |
+| `Europe/Madrid` | `GET /tasks/:id?today=2026-11-19` | **`"2019-12-31T23:00:00.000Z"`** | **`false`** |
+| — | SQL `due_date < date '2026-11-19'` | `2020-01-01` | `t` |
+
+Se rompen dos cosas: `isOverdue` (una tarea vencida nunca sale vencida al leerla) y el contrato de
+`dueDate`, que pasa de día `AAAA-MM-DD` a instante ISO, con **un día menos** si el proceso no corre en UTC.
+Los usuarios y tareas creados para la prueba se borraron después.
+
 ## Hallazgos
 
 ### 1. `due_date` deja de ser texto: la condición de vencida se rompe sin que nada falle

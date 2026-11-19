@@ -36,3 +36,42 @@ En el proyecto actual vamos a migrar el proyecto de SQLite a PostgreSQL en Docke
 - Documenta pasos relevantes de los puntos anteriores a tener en cuenta en @docs/migration.md
 - Nunca debes tocar las migraciones existentes, hay que conservarlas tal y como están pero antes documenta si propones modificar alguna. Lo pondremos como hallazgo en el fichero @docs/migration.md
 ```
+
+## Prompt 2
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+muestrame las lineas que has metido en el makefile
+```
+
+## Prompt 3
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+como llamamos para lanzar las pruebas mediante el makefile?
+```
+
+## Prompt 4
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+ejecuta los test nuevamente
+```
+
+## Prompt 5
+
+**Modelo:** Opus 5.5
+**Herramienta:** Claude Code
+
+```
+Haz esta parte aunque la migración quede incompleta. Si las pruebas vuelven a pasar, sigue con estas tres comprobaciones y anota lo que observes.
+1. Ejecuta la comprobación de tipos ((cd backend && npm run typecheck)) y anota si pasa o falla. Las dos respuestas son normales, y las dos enseñan algo.
+2. Compara el archivo de tipos generado (backend/database/schema.ts) con el de la rama de partida. El diff puede mostrar declaraciones cambiadas o salir vacío, y las dos salidas son normales. Si hay cambios, indica qué declaraciones cambiaron de tipo y anota, para cada una, el tipo anterior y el nuevo. Si el diff está vacío, busca qué fija esos tipos al cambiar de motor: vacío no significa que no haya cambiado nada, sino que lo que cambió no está en lo que el proyecto declara.
+3. Busca cómo decide el proyecto si una tarea está vencida. Lee el comentario que explica por qué funciona esa comparación y contrástalo con lo que encontraste en el paso anterior. Indica si sigue siendo válido y compruébalo con una tarea que ya debería estar vencida, no solo leyendo el código.
+```
