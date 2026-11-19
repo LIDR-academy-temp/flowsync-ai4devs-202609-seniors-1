@@ -388,3 +388,25 @@ Las líneas 2 y 3 se quedan como están. Después haz commit de HALLAZGOS.md y p
 ```
 
 **Qué salió:** el marcador `[pega la línea 1 corregida]` volvió a ir sin rellenar, pero la línea iba debajo del prompt y se usó esa. Punto 1 sustituido literalmente, puntos 2 y 3 intactos, y commit de `HALLAZGOS.md` y `prompts.md` sin push.
+
+## Prompt 11
+
+**Modelo:** Claude Opus 5.5
+**Herramienta:** Claude Code (app de escritorio)
+
+````
+`git log -1 --stat` te deja comprobar que el commit incluye los dos archivos.
+Después, la entrega:
+
+```
+git push -u origin motor-rm
+```
+
+En GitHub, abre el PR desde tu fork. Antes de crearlo, comprueba tres cosas:
+
+* la base es `LIDR-academy-temp/flowsync-ai4devs-202609-seniors-1`, no tu fork;
+* el PR sale de la rama `motor-rm`;
+* en “Files changed” aparecen `HALLAZGOS.md`, `prompts.md`, `compose.yaml`, el `Makefile` y la configuración, y no hay cambios en `database/migrations`.
+````
+
+**Qué salió:** el push a `origin` funcionó, pero el PR falló: ese fork lo es de `LIDR-academy`, no de `LIDR-academy-temp`, y GitHub no deja abrir el PR entre redes distintas. Respondí «Sí, desde flowsync-m8» y se abrió el PR #80 desde `RolandMartinez/flowsync-m8:motor-rm` hacia `s10/start`, con 11 archivos y ninguno de `database/migrations`.
