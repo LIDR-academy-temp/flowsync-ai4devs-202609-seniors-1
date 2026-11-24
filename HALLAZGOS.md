@@ -1,26 +1,15 @@
-# Hallazgos
+Línea 1: Número exacto de casos nuevos que fallaron y cuántos de los existentes siguieron en verde (según la salida de make test-e2e / make test).
 
-Aquí van **las tres líneas** del ejercicio, una por cada punto de abajo. Es lo único que hay que
-traer hecho: un cambio de motor a medias con estas tres líneas escritas vale más que lo contrario,
-porque lo que se discute en el directo es dónde te chocaste.
+Tests  44 passed, 3 failed (47)
+ Time  6s
+make: *** [Makefile:124: test-e2e] Error 1
 
-Escribe **una sola línea por punto**, con tus palabras y con lo que mediste, no con lo que suponías.
+Línea 2: 
 
-## 1. Las filas que cambian y la rama
 
-Cuántas filas cambian de valor en tu cambio de esquema, medido con una consulta, y en qué rama del
-árbol de reversibilidad cae. Si tu migración no toca datos, dilo tal cual: también es una respuesta.
+Tests  4 passed, 2 failed (6)
+ Time  57ms
+make: *** [Makefile:121: test-unit] Error 1
 
--
 
-## 2. Lo que la batería de pruebas no podía ver
-
-Una cosa que la batería de pruebas no podía ver. Si no encontraste ninguna, escribe qué buscaste y dónde.
-
--
-
-## 3. Tu duda
-
-De qué dudaste, o qué no pudiste comprobar.
-
--
+Línea 3: Se valido que las pruebas al inicio pasaran y se brico algunas pruebas ya que marco sin errores, al ralizar el analisis con cluade y realizar nuevamente el analisis aparecieron algunas casos sin pasar.

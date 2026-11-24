@@ -1,35 +1,43 @@
-# Prompts
-
-Aquí van **todos los prompts que lanzaste** para hacer el ejercicio, en el orden en que los
-lanzaste, con el modelo y la herramienta de cada uno.
-
-Esto no es papeleo. Lo que se revisa es **cómo pediste las cosas**, no solo lo que salió: un
-resultado flojo con un prompt bueno y un resultado flojo con un prompt vago necesitan feedback
-distinto, y sin este archivo no se distinguen.
-
-## Cómo rellenarlo
-
-- Un apartado `## Prompt N` por cada prompt.
-- **Pega el prompt tal cual lo lanzaste**, dentro del bloque de código, aunque ocupe diez líneas
-  y aunque tenga faltas. No lo reescribas para que quede bien: el que arreglaste mentalmente
-  después no es el que lanzaste.
-- Incluye también los que **no funcionaron**. Suelen ser los más útiles de leer.
-- `Modelo` y `Herramienta` en todos. Si cambiaste de una a otra a mitad, se nota aquí.
-
-Borra el ejemplo de abajo cuando escribas el primero.
-
----
-
 ## Prompt 1
 
-**Modelo:** Opus 1M xHigh
+**Modelo:** Opus 5.5 Medium
 **Herramienta:** Claude Code
 
 ```
-Este es el ejemplo. Bórralo.
-
-El prompt va aquí dentro, entero y con sus saltos de línea,
-para que se sepa dónde empieza y dónde acaba.
+Lee el Requirement «Cuándo una tarea está vencida» y todos sus Scenarios en openspec/specs/tasks/spec.md. Revisa también los archivos existentes en backend/tests/functional/ para ver cómo se configuran las peticiones HTTP, cómo se aíslan los datos entre tests y cómo se manejan los IDs. No escribas ni modifiques ningún archivo todavía, solo resúmeme los escenarios y el patrón técnico que usan los tests actuales.
 ```
 
-**Qué salió:** (opcional, una línea) funcionó a la primera / tuve que insistir / me inventó una ruta que no existe.
+**Qué salió:** 
+
+
+## Prompt 2
+
+**Modelo:** Opus 5.5 Medium
+**Herramienta:** Claude Code
+
+```
+Crea un nuevo archivo de tests funcionales en backend/tests/functional/ para cubrir cada uno de los Scenarios del requisito «Cuándo una tarea está vencida». Cumple estrictamente estas reglas:
+1. No modifiques absolutamente ningún archivo fuera de backend/tests/.
+2. Haz peticiones HTTP reales al endpoint correspondiente y verifica el campo isOverdue en el cuerpo de la respuesta.
+3. Pasa siempre el día de referencia explícitamente en la petición; nunca uses la fecha actual ni el reloj del sistema.
+4. Usa exactamente el mismo mecanismo de aislamiento de base de datos que los demás tests en backend/tests/functional/.
+5. No hardcodees IDs; captura y utiliza el identificador que devuelva la petición de creación de la tarea.
+
+```
+
+## Prompt 3
+
+**Modelo:** Opus 5.5 Medium
+**Herramienta:** Claude Code
+
+```
+Inspecciona la firma de isOverdueOn en backend/app/models/task.ts sin modificar ese archivo. Crea el directorio backend/tests/unit/ y escribe un archivo de tests unitarios puros (sin levantar servidor HTTP ni tocar base de datos) que pruebe isOverdueOn en estos casos:
+1. Fecha de vencimiento anterior al día de referencia y tarea pendiente.
+2. Fecha de vencimiento exactamente igual al día de referencia.
+3. Fecha de vencimiento posterior al día de referencia.
+4. Tarea sin fecha de vencimiento.
+5. Tarea ya completada con fecha de vencimiento pasada.
+6. Caso adicional de robustez: verificar que isOverdueOn se comporta exactamente igual tanto si recibe la fecha como string (texto) como si la recibe como objeto Date.
+Recuerda: no toques ni una línea fuera de backend/tests/
+```
+
