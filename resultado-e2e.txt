@@ -1,0 +1,214 @@
+🐘 Levantando PostgreSQL (db y db-test)...
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Running 
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Running 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Waiting 
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Waiting 
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Healthy 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Healthy 
+🗃️  Migrando la base de desarrollo...
+Already up to date
+❯ Scanned "pg" database and found 3 tables
+[2K[1A[2K[G❯ Scanned table auth_access_tokens
+[2K[1A[2K[G❯ Scanned table tasks
+[2K[1A[2K[G❯ Scanned table users
+[2K[1A[2K[G❯ Creating schema classes for scanned tables
+[ success ] Schema classes generated (93 ms)
+🗃️  Migrando la base de pruebas...
+Already up to date
+❯ Scanned "pg" database and found 3 tables
+[2K[1A[2K[G❯ Scanned table auth_access_tokens
+[2K[1A[2K[G❯ Scanned table tasks
+[2K[1A[2K[G❯ Scanned table users
+[2K[1A[2K[G❯ Creating schema classes for scanned tables
+[ success ] Schema classes generated (77 ms)
+c[ info ] loading hooks...
+[ info ] generating indexes...
+[ info ] codegen: created 5 file(s)
+[ info ] booting application to run tests...
+
+functional / Auth | iniciales (tests/functional/auth/initials.spec.ts)
+  ✔ un nombre de dos palabras da la inicial de cada una (192.68ms)
+  ✔ un nombre de una palabra da sus dos primeras letras (77.12ms)
+  ✔ sin nombre, las iniciales salen del email (87.07ms)
+
+functional / Auth | login (tests/functional/auth/login.spec.ts)
+  ✔ con las credenciales correctas se emite un token que autentica (94.55ms)
+  ✔ una contraseña equivocada no emite token (199.81ms)
+  ✔ un email desconocido responde igual que una contraseña equivocada (125.11ms)
+  ✔ un email mal formado se rechaza antes de comprobar credenciales (8.3ms)
+
+functional / Auth | sesión (tests/functional/auth/session.spec.ts)
+  ✔ el perfil devuelve la cuenta del token presentado (114.34ms)
+  ✔ sin cabecera de autorización no se devuelve nada de la cuenta (79.96ms)
+  ✔ un token inventado no abre las rutas de cuenta (74.58ms)
+  ✔ cerrar sesión invalida el token usado (84.95ms)
+  ✔ cerrar una sesión no cierra las demás de la misma cuenta (128.91ms)
+  ✔ el registro y el login siguen siendo públicos (43.13ms)
+
+functional / Auth | registro (tests/functional/auth/signup.spec.ts)
+  ✔ registrarse devuelve la cuenta y un token que ya sirve (49.9ms)
+  ✔ una cuenta puede quedarse sin nombre (45.89ms)
+  ✔ la contraseña nunca sale en la respuesta (41.75ms)
+  ✔ una contraseña corta se rechaza y no crea cuenta (9.14ms)
+  ✔ la confirmación tiene que coincidir (11.96ms)
+  ✔ un email mal formado se rechaza (4.83ms)
+  ✔ un email ya registrado no crea una segunda cuenta (59.6ms)
+
+functional / Tasks | responsable (tests/functional/tasks/assignee.spec.ts)
+  ✔ el responsable llega con su nombre y sus iniciales (208.16ms)
+  ✔ la tarea no filtra datos de la cuenta de su responsable (143.08ms)
+  ✔ un responsable sin nombre llega sin nombre pero con iniciales (112.96ms)
+
+functional / Tasks | vencimiento (tests/functional/tasks/overdue.spec.ts)
+  ✖ flags a not-done task due the day before the reference day as overdue (74.42ms)
+  ✔ does not flag a task due on the reference day itself (71.69ms)
+  ✔ does not flag a task due after the reference day (97.5ms)
+  ✔ never flags a task without a due date, however old it is (109.54ms)
+  ✖ stops flagging an overdue task as overdue once it is done, keeping its due date (82.52ms)
+  ✔ does not flag a done task whose due date has passed (74.71ms)
+  ✖ postponing an overdue task clears the overdue flag in the same response (79.53ms)
+
+functional / Tasks | papelera (tests/functional/tasks/trash.spec.ts)
+  ✔ CA-1 | borrar una tarea la quita de la lista (101.54ms)
+  ✔ CA-2 | desaparece para todo el equipo, no solo para quien borra (173.9ms)
+  ✔ CA-3 | se puede borrar una tarea ajena, sin permiso especial (170.35ms)
+  ✔ CA-8 | la papelera lleva la tarea, con quién la llevaba y cuándo se borró (172.54ms)
+  ✔ CA-8 | una papelera sin nada es una lista vacía, no un error (82.19ms)
+  ✔ CA-8b | restaurar la devuelve tal cual y la saca de la papelera (196ms)
+{"level":40,"time":1795541955263,"pid":35053,"hostname":"HEA-C-048.local","request_id":"86c4d7bc-5bbc-4a0d-8adf-a83ed17a232b","x-request-id":"86c4d7bc-5bbc-4a0d-8adf-a83ed17a232b","msg":"Row not found"}
+{"level":40,"time":1795541955274,"pid":35053,"hostname":"HEA-C-048.local","request_id":"038124bd-e92d-4bae-b354-33cc6a61d5f8","x-request-id":"038124bd-e92d-4bae-b354-33cc6a61d5f8","msg":"Row not found"}
+{"level":40,"time":1795541955306,"pid":35053,"hostname":"HEA-C-048.local","request_id":"a20fbd37-1bd0-476b-bdff-63793ae7f8e8","x-request-id":"a20fbd37-1bd0-476b-bdff-63793ae7f8e8","msg":"Row not found"}
+  ✔ CA-8b | restaurar una tarea que no está en la papelera es «no existe» (124.97ms)
+  ✔ CA-8c | no sale en la lista, ni sin filtro ni con ninguno (126.83ms)
+{"level":40,"time":1795541955692,"pid":35053,"hostname":"HEA-C-048.local","request_id":"9bc3009e-4212-4549-891e-9ff6adfa94a3","x-request-id":"9bc3009e-4212-4549-891e-9ff6adfa94a3","msg":"Row not found"}
+{"level":40,"time":1795541955709,"pid":35053,"hostname":"HEA-C-048.local","request_id":"7d26faa1-ae19-4ac5-8d09-35bf8f4e48bc","x-request-id":"7d26faa1-ae19-4ac5-8d09-35bf8f4e48bc","msg":"Row not found"}
+{"level":40,"time":1795541955727,"pid":35053,"hostname":"HEA-C-048.local","request_id":"f0bfe642-6d24-414a-91be-fc3f1fd9e64c","x-request-id":"f0bfe642-6d24-414a-91be-fc3f1fd9e64c","msg":"Row not found"}
+  ✔ CA-8c | tampoco se abre por su identificador (304.32ms)
+{"level":40,"time":1795541955834,"pid":35053,"hostname":"HEA-C-048.local","request_id":"be9e6c9e-f26e-4e1a-82a5-f4a508ed118c","x-request-id":"be9e6c9e-f26e-4e1a-82a5-f4a508ed118c","msg":"Row not found"}
+{"level":40,"time":1795541955840,"pid":35053,"hostname":"HEA-C-048.local","request_id":"f2308ded-2a90-4c12-81de-d535ae7b68e7","x-request-id":"f2308ded-2a90-4c12-81de-d535ae7b68e7","msg":"Row not found"}
+{"level":40,"time":1795541955847,"pid":35053,"hostname":"HEA-C-048.local","request_id":"f03dad0d-09ff-4f63-925c-9dbcf2a75e95","x-request-id":"f03dad0d-09ff-4f63-925c-9dbcf2a75e95","msg":"Row not found"}
+  ✔ CA-8c | no se le puede cambiar el estado (109.96ms)
+{"level":40,"time":1795541955947,"pid":35053,"hostname":"HEA-C-048.local","request_id":"0a7cfd28-d69c-483f-b21c-a12f1594cb0e","x-request-id":"0a7cfd28-d69c-483f-b21c-a12f1594cb0e","msg":"Row not found"}
+{"level":40,"time":1795541955959,"pid":35053,"hostname":"HEA-C-048.local","request_id":"515d2906-03d1-4571-aadd-2ee2a23a7c5b","x-request-id":"515d2906-03d1-4571-aadd-2ee2a23a7c5b","msg":"Row not found"}
+{"level":40,"time":1795541955968,"pid":35053,"hostname":"HEA-C-048.local","request_id":"ab9a3c40-6bb9-4c77-80bc-09f40a26cb06","x-request-id":"ab9a3c40-6bb9-4c77-80bc-09f40a26cb06","msg":"Row not found"}
+  ✔ CA-8c | no se le puede cambiar la fecha (121.12ms)
+  ✔ CA-8c | para el resto del código la tarea borrada no existe (98.34ms)
+  ✔ CA-8c | una tarea borrada por la factory tampoco se ve (79.73ms)
+  ✔ CA-9 | borrar no es «marcar como hecha»: son dos caminos distintos (124.78ms)
+  ✔ CA-10 | sin sesión no se borra nada, ni se ve ni se restaura (92.15ms)
+{"level":40,"time":1795541956515,"pid":35053,"hostname":"HEA-C-048.local","request_id":"69ae6fa8-0128-4d8e-b316-9345a8e2e3d4","x-request-id":"69ae6fa8-0128-4d8e-b316-9345a8e2e3d4","msg":"Row not found"}
+  ✔ CA-11 | borrar dos veces dice que ya no existe y no es un fallo del sistema (161.46ms)
+{"level":40,"time":1795541956604,"pid":35053,"hostname":"HEA-C-048.local","request_id":"10f3b431-5cb1-4961-99c7-cb158f2308e6","x-request-id":"10f3b431-5cb1-4961-99c7-cb158f2308e6","msg":"Row not found"}
+  ✔ CA-11 | borrar una tarea que no existe es el mismo «no existe» (80.28ms)
+ ERRORS 
+
+❯ Tasks | vencimiento / flags a not-done task due the day before the reference day as overdue
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to be true[39m
+
+ ⁃ at Assert.isTrue [33m(node_modules/@japa/assert/build/index.js:117:19)[39m
+ ⁃ at Object.executor [33m(tests/functional/tasks/overdue.spec.ts:72:12)[39m
+
+   [2m67[22m [2m┃[22m      [31mconst[0m response [34m=[0m [31mawait[0m [35mconsultar[0m(client[34m,[0m token[34m,[0m tarea[34m.[0mid[34m,[0m [33mHOY[0m)
+   [2m68[22m [2m┃[22m  
+   [2m69[22m [2m┃[22m      response[34m.[0m[35massertStatus[0m([33m200[0m)
+   [2m70[22m [2m┃[22m      assert[34m.[0m[35mequal[0m(response[34m.[0m[35mbody[0m()[34m.[0mdata[34m.[0mid[34m,[0m tarea[34m.[0mid)
+   [2m71[22m [2m┃[22m      assert[34m.[0m[35mequal[0m([35mdia[0m(response[34m.[0m[35mbody[0m()[34m.[0mdata[34m.[0mdueDate)[34m,[0m [33mAYER[0m)
+ [41m❯ 72 ┃      assert.isTrue(response.body().data.isOverdue)[49m
+   [2m73[22m [2m┃[22m    })
+   [2m74[22m [2m┃[22m  
+   [2m75[22m [2m┃[22m    [35mtest[0m([32m'does not flag a task due on the reference day itself'[0m[34m,[0m [31masync[0m ({ client[34m,[0m assert }) [31m=>[0m {
+   [2m76[22m [2m┃[22m      [31mconst[0m { user[34m,[0m token } [34m=[0m [31mawait[0m [35msesion[0m(client)
+   [2m77[22m [2m┃[22m      [31mconst[0m tarea [34m=[0m [31mawait[0m [35mtareaDe[0m(user[34m,[0m { dueDate[34m:[0m [33mHOY[0m })
+
+[2m ⁃ at [3mprocess.processTicksAndRejections[23m ([3mnode:internal/process/task_queues:104:5[23m)[22m
+ ⁃ at async #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:4)[39m
+ ⁃ at async TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:4)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+ ⁃ at async SuiteRunner.run [33m(node_modules/@japa/core/build/index.js:1100:4)[39m
+ ⁃ at async Suite$1.exec [33m(node_modules/@japa/core/build/index.js:1175:3)[39m
+[1/3]─
+
+❯ Tasks | vencimiento / stops flagging an overdue task as overdue once it is done, keeping its due date
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to be true[39m
+
+ ⁃ at Assert.isTrue [33m(node_modules/@japa/assert/build/index.js:117:19)[39m
+ ⁃ at Object.executor [33m(tests/functional/tasks/overdue.spec.ts:123:12)[39m
+
+   [2m118[22m [2m┃[22m      [31mconst[0m { user[34m,[0m token } [34m=[0m [31mawait[0m [35msesion[0m(client)
+   [2m119[22m [2m┃[22m      [31mconst[0m tarea [34m=[0m [31mawait[0m [35mtareaDe[0m(user[34m,[0m { dueDate[34m:[0m [33mAYER[0m })
+   [2m120[22m [2m┃[22m  
+   [2m121[22m [2m┃[22m      [31mconst[0m antes [34m=[0m [31mawait[0m [35mconsultar[0m(client[34m,[0m token[34m,[0m tarea[34m.[0mid[34m,[0m [33mHOY[0m)
+   [2m122[22m [2m┃[22m      antes[34m.[0m[35massertStatus[0m([33m200[0m)
+ [41m❯ 123 ┃      assert.isTrue(antes.body().data.isOverdue)[49m
+   [2m124[22m [2m┃[22m  
+   [2m125[22m [2m┃[22m      [31mconst[0m cambio [34m=[0m [31mawait[0m client
+   [2m126[22m [2m┃[22m        [34m.[0m[35mpatch[0m([32m`/api/v1/tasks/[0m[31m${[0mtarea[34m.[0mid[31m}[0m[32m/status`[0m)
+   [2m127[22m [2m┃[22m        [34m.[0m[35mheaders[0m([35mcon[0m(token))
+   [2m128[22m [2m┃[22m        [34m.[0m[35mjson[0m({ status[34m:[0m [32m'done'[0m })
+
+[2m ⁃ at [3mprocess.processTicksAndRejections[23m ([3mnode:internal/process/task_queues:104:5[23m)[22m
+ ⁃ at async #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:4)[39m
+ ⁃ at async TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:4)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+ ⁃ at async SuiteRunner.run [33m(node_modules/@japa/core/build/index.js:1100:4)[39m
+ ⁃ at async Suite$1.exec [33m(node_modules/@japa/core/build/index.js:1175:3)[39m
+[2/3]─
+
+❯ Tasks | vencimiento / postponing an overdue task clears the overdue flag in the same response
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to be true[39m
+
+ ⁃ at Assert.isTrue [33m(node_modules/@japa/assert/build/index.js:117:19)[39m
+ ⁃ at Object.executor [33m(tests/functional/tasks/overdue.spec.ts:162:12)[39m
+
+   [2m157[22m [2m┃[22m      [31mconst[0m tarea [34m=[0m [31mawait[0m [35mtareaDe[0m(user[34m,[0m { dueDate[34m:[0m [33mAYER[0m })
+   [2m158[22m [2m┃[22m      [31mconst[0m nueva [34m=[0m [32m'2026-08-20'[0m
+   [2m159[22m [2m┃[22m  
+   [2m160[22m [2m┃[22m      [31mconst[0m antes [34m=[0m [31mawait[0m [35mconsultar[0m(client[34m,[0m token[34m,[0m tarea[34m.[0mid[34m,[0m [33mHOY[0m)
+   [2m161[22m [2m┃[22m      antes[34m.[0m[35massertStatus[0m([33m200[0m)
+ [41m❯ 162 ┃      assert.isTrue(antes.body().data.isOverdue)[49m
+   [2m163[22m [2m┃[22m  
+   [2m164[22m [2m┃[22m      [31mconst[0m aplazada [34m=[0m [31mawait[0m client
+   [2m165[22m [2m┃[22m        [34m.[0m[35mput[0m([32m`/api/v1/tasks/[0m[31m${[0mtarea[34m.[0mid[31m}[0m[32m/due-date`[0m)
+   [2m166[22m [2m┃[22m        [34m.[0m[35mheaders[0m([35mcon[0m(token))
+   [2m167[22m [2m┃[22m        [34m.[0m[35mjson[0m({ today[34m:[0m [33mHOY[0m[34m,[0m dueDate[34m:[0m nueva })
+
+[2m ⁃ at [3mprocess.processTicksAndRejections[23m ([3mnode:internal/process/task_queues:104:5[23m)[22m
+ ⁃ at async #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:4)[39m
+ ⁃ at async TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:4)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+ ⁃ at async SuiteRunner.run [33m(node_modules/@japa/core/build/index.js:1100:4)[39m
+ ⁃ at async Suite$1.exec [33m(node_modules/@japa/core/build/index.js:1175:3)[39m
+[3/3]─
+
+ FAILED 
+
+Tests  44 passed, 3 failed (47)
+ Time  5s
+make: *** [test-e2e] Error 1
