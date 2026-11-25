@@ -6,21 +6,36 @@ porque lo que se discute en el directo es dónde te chocaste.
 
 Escribe **una sola línea por punto**, con tus palabras y con lo que mediste, no con lo que suponías.
 
-## 1. Las filas que cambian y la rama
+## 1. Cuántos de tus casos nuevos fallaron y cuántos de los que ya había siguieron en verde
 
-Cuántas filas cambian de valor en tu cambio de esquema, medido con una consulta, y en qué rama del
-árbol de reversibilidad cae. Si tu migración no toca datos, dilo tal cual: también es una respuesta.
+- Tests  62 passed, 10 failed (72)
 
--
+De los casos nuevos  fallaron 10 tests (sobre 32 tests nuevos generados).
+Todos los existentes al inicio (40 funcionales) siguen en verde.
 
-## 2. Lo que la batería de pruebas no podía ver
+## 2. Cuál de tus casos nuevos PASÓ, si alguno pasó, y por qué crees que pasó.
 
-Una cosa que la batería de pruebas no podía ver. Si no encontraste ninguna, escribe qué buscaste y dónde.
+Han pasado porque la comprobación de fecha y date siempre da false. Esto provoca que pasen los de fecha hoy o futura, aunque no se esté validando nada. Además en los de tarea "hecha" no se mira el estado para determinar si está vencida o no.
 
--
+### Funcional tests
 
-## 3. Tu duda
+    - vencer hoy todavía no es estar vencida.
+    - una tarea con fecha futura no llega vencida.
+    - una tarea sin fecha no se vence nunca, por antigua que sea.
+    - una tarea hecha con la fecha ya pasada no llega vencida.
+
+
+### Unit Test:
+
+    - fecha exactamente igual al día de referencia: no vencida
+    - fecha posterior al día de referencia: no vencida
+    - sin fecha: no vencida
+
+
+## 3. De qué dudaste
 
 De qué dudaste, o qué no pudiste comprobar.
 
--
+- Si corregir las comprobaciones adicionales que habia añadido sobre dueDate y status; o bien si mantenerlo como lo había dejado tras el prompt 1.
+  
+
