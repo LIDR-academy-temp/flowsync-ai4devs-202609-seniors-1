@@ -185,4 +185,4 @@ Si necesitas crear pruebas temporales, hazlo únicamente dentro de `backend/test
 Devuélveme los resultados observados, diferenciando claramente qué comportamientos has podido verificar y cuáles siguen sin estar demostrados. No añadas nuevos tests permanentes salvo que sean necesarios para cubrir un escenario que actualmente no esté comprobado.
 ```
 
-**Qué salió:** .
+**Qué salió:** Se confirmó que Lucid devuelve dueDate como Date al leer de PostgreSQL, mientras que al crear la tarea es un string; los endpoints de cambio de estado y aplazamiento guardan correctamente los datos, pero isOverdue puede devolver resultados distintos entre PUT y GET debido a esa diferencia de tipos, sin modificar la implementación ni los tests originales.
