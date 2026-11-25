@@ -1,26 +1,13 @@
 # Hallazgos
 
-Aquí van **las tres líneas** del ejercicio, una por cada punto de abajo. Es lo único que hay que
-traer hecho: un cambio de motor a medias con estas tres líneas escritas vale más que lo contrario,
-porque lo que se discute en el directo es dónde te chocaste.
+## 1. Cuántos fallaron y cuántos de los que había siguieron pasando
 
-Escribe **una sola línea por punto**, con tus palabras y con lo que mediste, no con lo que suponías.
+- De mis 13 casos nuevos fallaron 5 (3 de 7 funcionales, 2 de 6 unitarios) y pasaron 8; los 40 que ya había siguieron en verde (`make test-e2e`: 44 de 47; `make test-unit`: 4 de 6).
 
-## 1. Las filas que cambian y la rama
+## 2. Qué caso pasó y por qué
 
-Cuántas filas cambian de valor en tu cambio de esquema, medido con una consulta, y en qué rama del
-árbol de reversibilidad cae. Si tu migración no toca datos, dilo tal cual: también es una respuesta.
+- Pasó «hecha con la fecha pasada» por HTTP, pero por accidente: los casos que fallan por HTTP son los que esperan `isOverdue: true`, porque la comparación de `isOverdueOn` da siempre `false` cuando `dueDate` llega como `Date` en vez de texto, y eso tapa que la regla no mira `status` (el unitario de ese caso falla con `true`).
 
--
+## 3. Duda
 
-## 2. Lo que la batería de pruebas no podía ver
-
-Una cosa que la batería de pruebas no podía ver. Si no encontraste ninguna, escribe qué buscaste y dónde.
-
--
-
-## 3. Tu duda
-
-De qué dudaste, o qué no pudiste comprobar.
-
--
+- No comprobé en ejecución que la base devuelva `dueDate` como `Date` (lo deduzco de que falle el caso del objeto `Date`), y mis tests de «darla por hecha» y «aplazar» fallan en la precondición, así que no sé si el `PATCH` y el `PUT` (con `today` en el cuerpo) cumplen la spec.
