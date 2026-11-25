@@ -1,26 +1,13 @@
 # Hallazgos
 
-Aquí van **las tres líneas** del ejercicio, una por cada punto de abajo. Es lo único que hay que
-traer hecho: un cambio de motor a medias con estas tres líneas escritas vale más que lo contrario,
-porque lo que se discute en el directo es dónde te chocaste.
+## 1. Cuántos casos nuevos fallaron y cuántos de los que ya había siguieron en verde
 
-Escribe **una sola línea por punto**, con tus palabras y con lo que mediste, no con lo que suponías.
+- `make test-e2e` dio `Tests 44 passed, 3 failed (47)`: de mlosis 7 casos funcionales fallaron 3 y pasaron 4, y los 40 que ya había siguieron todos en verde; `make test-unit` dio `Tests 6 passed, 2 failed (8)`.
 
-## 1. Las filas que cambian y la rama
+## 2. Cuál de los casos nuevos pasó y por qué
 
-Cuántas filas cambian de valor en tu cambio de esquema, medido con una consulta, y en qué rama del
-árbol de reversibilidad cae. Si tu migración no toca datos, dilo tal cual: también es una respuesta.
+- Pasaron justo los que esperan `isOverdue: false` (vence hoy, fecha futura, sin fecha y hecha con fecha pasada), y fallaron todos los que en algún momento esperan `true`: `dueDate` sale de Postgres como un `Date` (la respuesta trae `"2026-08-20T00:00:00.000Z"`) y `Date < 'AAAA-MM-DD'` da siempre `false`, así que la regla dice «no vencida» a todo y cualquier test que espere `false` pasa sin medir nada; el caso «hecha con la fecha pasada» es un verde falso, porque además falta el `status === 'done'` y solo el test unitario, sin base de datos, lo pone en rojo.
 
--
+## 3. De qué dudé o qué no pude comprobar
 
-## 2. Lo que la batería de pruebas no podía ver
-
-Una cosa que la batería de pruebas no podía ver. Si no encontraste ninguna, escribe qué buscaste y dónde.
-
--
-
-## 3. Tu duda
-
-De qué dudaste, o qué no pudiste comprobar.
-
--
+- No pude comprobar el efecto del huso horario: `pg` crea el `Date` a medianoche local y aquí el proceso corre en UTC, así que en un huso positivo el `dueDate` del JSON podría salir con el día anterior y no lo he probado
