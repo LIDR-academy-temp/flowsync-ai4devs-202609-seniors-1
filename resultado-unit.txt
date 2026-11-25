@@ -1,0 +1,112 @@
+🐘 Levantando PostgreSQL (db y db-test)...
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Running 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Running 
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Waiting 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Waiting 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Healthy 
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Healthy 
+🗃️  Migrando la base de desarrollo...
+Already up to date
+❯ Scanned "pg" database and found 3 tables
+[2K[1A[2K[G❯ Scanned table auth_access_tokens
+[2K[1A[2K[G❯ Scanned table users
+[2K[1A[2K[G❯ Scanned table tasks
+[2K[1A[2K[G❯ Creating schema classes for scanned tables
+[ success ] Schema classes generated (67 ms)
+🗃️  Migrando la base de pruebas...
+Already up to date
+❯ Scanned "pg" database and found 3 tables
+[2K[1A[2K[G❯ Scanned table auth_access_tokens
+[2K[1A[2K[G❯ Scanned table tasks
+[2K[1A[2K[G❯ Scanned table users
+[2K[1A[2K[G❯ Creating schema classes for scanned tables
+[ success ] Schema classes generated (58 ms)
+c[ info ] loading hooks...
+[ info ] generating indexes...
+[ info ] codegen: created 5 file(s)
+[ info ] booting application to run tests...
+
+unit / Task.isOverdueOn (tests/unit/task_overdue.spec.ts)
+  ✔ returns true for a pending task due before the reference day (0.66ms)
+  ✔ returns false for a pending task due exactly on the reference day (0.17ms)
+  ✔ returns false for a pending task due after the reference day (0.07ms)
+  ✔ returns false for a pending task without a due date (0.09ms)
+  ✖ returns false for a done task whose due date is before the reference day (0.36ms)
+  ✖ gives the same result whether the due date is a string or a Date of the same day (0.15ms)
+ ERRORS 
+
+❯ Task.isOverdueOn / returns false for a done task whose due date is before the reference day
+
+- Expected  - 1
++ Received  + 1
+
+- false
++ true
+
+[31mℹ AssertionError: expected true to be false[39m
+
+ ⁃ at Assert.isFalse [33m(node_modules/@japa/assert/build/index.js:125:19)[39m
+ ⁃ at Object.executor [33m(tests/unit/task_overdue.spec.ts:44:12)[39m
+
+   [2m39[22m [2m┃[22m    })
+   [2m40[22m [2m┃[22m  
+   [2m41[22m [2m┃[22m    [35mtest[0m([32m'returns false for a done task whose due date is before the reference day'[0m[34m,[0m ({
+   [2m42[22m [2m┃[22m      assert[34m,[0m
+   [2m43[22m [2m┃[22m    }) [31m=>[0m {
+ [41m❯ 44 ┃      assert.isFalse(taskWith('done', DAY_BEFORE).isOverdueOn(REFERENCE_DAY))[49m
+   [2m45[22m [2m┃[22m    })
+   [2m46[22m [2m┃[22m  
+   [2m47[22m [2m┃[22m    [35mtest[0m([32m'gives the same result whether the due date is a string or a Date of the same day'[0m[34m,[0m ({
+   [2m48[22m [2m┃[22m      assert[34m,[0m
+   [2m49[22m [2m┃[22m    }) [31m=>[0m {
+
+ ⁃ at #runTest [33m(node_modules/@japa/core/build/index.js:634:121)[39m
+ ⁃ at #wrapRegressionTest [33m(node_modules/@japa/core/build/index.js:670:118)[39m
+ ⁃ at #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:102)[39m
+ ⁃ at #wrapTestInRetries [33m(node_modules/@japa/core/build/index.js:686:66)[39m
+ ⁃ at TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:33)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+[1/2]─
+
+❯ Task.isOverdueOn / gives the same result whether the due date is a string or a Date of the same day
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to equal true[39m
+
+ ⁃ at Assert.equal [33m(node_modules/@japa/assert/build/index.js:69:19)[39m
+ ⁃ at Object.executor [33m(tests/unit/task_overdue.spec.ts:57:12)[39m
+
+   [2m52[22m [2m┃[22m      [31mconst[0m asString [34m=[0m [35mtaskWith[0m([32m'pending'[0m[34m,[0m [32m'2026-08-12'[0m)[34m.[0m[35misOverdueOn[0m([33mREFERENCE_DAY[0m)
+   [2m53[22m [2m┃[22m      [31mconst[0m asDate [34m=[0m [35mtaskWith[0m([32m'pending'[0m[34m,[0m [31mnew[0m [33mDate[0m([32m'2026-08-12T00:00:00.000Z'[0m))[34m.[0m[35misOverdueOn[0m(
+   [2m54[22m [2m┃[22m        [33mREFERENCE_DAY[0m
+   [2m55[22m [2m┃[22m      )
+   [2m56[22m [2m┃[22m  
+ [41m❯ 57 ┃      assert.equal(asDate, asString)[49m
+   [2m58[22m [2m┃[22m      [90m// Y el resultado correcto para ese día es «vencida»: igualdad solo no basta.
+   [2m59[22m [2m┃[22m  [0m    assert[34m.[0m[35misTrue[0m(asString)
+   [2m60[22m [2m┃[22m      assert[34m.[0m[35misTrue[0m(asDate)
+   [2m61[22m [2m┃[22m    })
+   [2m62[22m [2m┃[22m  })
+
+ ⁃ at #runTest [33m(node_modules/@japa/core/build/index.js:634:121)[39m
+ ⁃ at #wrapRegressionTest [33m(node_modules/@japa/core/build/index.js:670:118)[39m
+ ⁃ at #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:102)[39m
+ ⁃ at #wrapTestInRetries [33m(node_modules/@japa/core/build/index.js:686:66)[39m
+ ⁃ at TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:33)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+[2/2]─
+
+ FAILED 
+
+Tests  4 passed, 2 failed (6)
+ Time  4ms
+make: *** [test-unit] Error 1
