@@ -1,0 +1,12 @@
+{
+  "allowedEmailDomains": [
+    "example.com",
+    "example.org",
+    "example.net",
+    "localhost",
+    "users.noreply.github.com",
+    "anthropic.com"
+  ],
+  "ignoreFiles": ["package-lock.json", "pnpm-lock.yaml", "yarn.lock"],
+  "envAllowedSuffixes": [".example", ".sample", ".template", ".dist"]
+}
