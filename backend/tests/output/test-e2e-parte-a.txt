@@ -1,0 +1,214 @@
+🐘 Levantando PostgreSQL (db y db-test)...
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Running 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Running 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Waiting 
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Waiting 
+ Container flowsync-ai4devs-202609-seniors-1-db-1 Healthy 
+ Container flowsync-ai4devs-202609-seniors-1-db-test-1 Healthy 
+🗃️  Migrando la base de desarrollo...
+Already up to date
+❯ Scanned "pg" database and found 3 tables
+[2K[1A[2K[G❯ Scanned table auth_access_tokens
+[2K[1A[2K[G❯ Scanned table tasks
+[2K[1A[2K[G❯ Scanned table users
+[2K[1A[2K[G❯ Creating schema classes for scanned tables
+[ success ] Schema classes generated (52 ms)
+🗃️  Migrando la base de pruebas...
+Already up to date
+❯ Scanned "pg" database and found 3 tables
+[2K[1A[2K[G❯ Scanned table auth_access_tokens
+[2K[1A[2K[G❯ Scanned table tasks
+[2K[1A[2K[G❯ Scanned table users
+[2K[1A[2K[G❯ Creating schema classes for scanned tables
+[ success ] Schema classes generated (50 ms)
+c[ info ] loading hooks...
+[ info ] generating indexes...
+[ info ] codegen: created 5 file(s)
+[ info ] booting application to run tests...
+
+functional / Auth | iniciales (tests/functional/auth/initials.spec.ts)
+  ✔ un nombre de dos palabras da la inicial de cada una (176.11ms)
+  ✔ un nombre de una palabra da sus dos primeras letras (77.75ms)
+  ✔ sin nombre, las iniciales salen del email (60.23ms)
+
+functional / Auth | login (tests/functional/auth/login.spec.ts)
+  ✔ con las credenciales correctas se emite un token que autentica (70.97ms)
+  ✔ una contraseña equivocada no emite token (94.59ms)
+  ✔ un email desconocido responde igual que una contraseña equivocada (88.23ms)
+  ✔ un email mal formado se rechaza antes de comprobar credenciales (4.4ms)
+
+functional / Auth | sesión (tests/functional/auth/session.spec.ts)
+  ✔ el perfil devuelve la cuenta del token presentado (64.75ms)
+  ✔ sin cabecera de autorización no se devuelve nada de la cuenta (60.56ms)
+  ✔ un token inventado no abre las rutas de cuenta (62.17ms)
+  ✔ cerrar sesión invalida el token usado (66.98ms)
+  ✔ cerrar una sesión no cierra las demás de la misma cuenta (96.51ms)
+  ✔ el registro y el login siguen siendo públicos (34.63ms)
+
+functional / Auth | registro (tests/functional/auth/signup.spec.ts)
+  ✔ registrarse devuelve la cuenta y un token que ya sirve (36.81ms)
+  ✔ una cuenta puede quedarse sin nombre (32.55ms)
+  ✔ la contraseña nunca sale en la respuesta (32.29ms)
+  ✔ una contraseña corta se rechaza y no crea cuenta (4.5ms)
+  ✔ la confirmación tiene que coincidir (3.96ms)
+  ✔ un email mal formado se rechaza (2.58ms)
+  ✔ un email ya registrado no crea una segunda cuenta (32.56ms)
+
+functional / Tasks | responsable (tests/functional/tasks/assignee.spec.ts)
+  ✔ el responsable llega con su nombre y sus iniciales (111.96ms)
+  ✔ la tarea no filtra datos de la cuenta de su responsable (80.52ms)
+  ✔ un responsable sin nombre llega sin nombre pero con iniciales (76.99ms)
+
+functional / Tasks | vencimiento (tests/functional/tasks/overdue.spec.ts)
+  ✖ Fecha del día anterior (86.32ms)
+  ✔ Vencer hoy todavía no es estar vencida (78.66ms)
+  ✔ Fecha futura (76.74ms)
+  ✔ Sin fecha no se vence nunca (69.24ms)
+  ✖ Darla por hecha la deja de vencer (74.42ms)
+  ✔ Una tarea hecha con la fecha pasada (83.25ms)
+  ✖ Aplazar resuelve el vencimiento (77.63ms)
+
+functional / Tasks | papelera (tests/functional/tasks/trash.spec.ts)
+  ✔ CA-1 | borrar una tarea la quita de la lista (82.27ms)
+  ✔ CA-2 | desaparece para todo el equipo, no solo para quien borra (143.74ms)
+  ✔ CA-3 | se puede borrar una tarea ajena, sin permiso especial (128.26ms)
+  ✔ CA-8 | la papelera lleva la tarea, con quién la llevaba y cuándo se borró (141.38ms)
+  ✔ CA-8 | una papelera sin nada es una lista vacía, no un error (64.56ms)
+  ✔ CA-8b | restaurar la devuelve tal cual y la saca de la papelera (152.57ms)
+{"level":40,"time":1795662492661,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"73caa5fd-0e0a-4bb0-8e39-f23422741ee9","x-request-id":"73caa5fd-0e0a-4bb0-8e39-f23422741ee9","msg":"Row not found"}
+{"level":40,"time":1795662492670,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"bf9c6f68-8678-41c3-9327-4a15f1827c44","x-request-id":"bf9c6f68-8678-41c3-9327-4a15f1827c44","msg":"Row not found"}
+{"level":40,"time":1795662492693,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"39394e79-d351-42ba-8d6f-71e7ffd5d361","x-request-id":"39394e79-d351-42ba-8d6f-71e7ffd5d361","msg":"Row not found"}
+  ✔ CA-8b | restaurar una tarea que no está en la papelera es «no existe» (100.47ms)
+  ✔ CA-8c | no sale en la lista, ni sin filtro ni con ninguno (91.25ms)
+{"level":40,"time":1795662492868,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"8f12b93a-7acb-469c-a5fa-c86e2ad24d98","x-request-id":"8f12b93a-7acb-469c-a5fa-c86e2ad24d98","msg":"Row not found"}
+{"level":40,"time":1795662492875,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"f02525c3-face-4fee-8e2f-95c13dd041a2","x-request-id":"f02525c3-face-4fee-8e2f-95c13dd041a2","msg":"Row not found"}
+{"level":40,"time":1795662492881,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"b1d1a41a-9daa-4fd7-adab-afe306120b0d","x-request-id":"b1d1a41a-9daa-4fd7-adab-afe306120b0d","msg":"Row not found"}
+  ✔ CA-8c | tampoco se abre por su identificador (100.48ms)
+{"level":40,"time":1795662492968,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"026191b7-a783-4e19-b010-5a153edf7832","x-request-id":"026191b7-a783-4e19-b010-5a153edf7832","msg":"Row not found"}
+{"level":40,"time":1795662492975,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"43eeaefc-6304-42db-add9-df3e2519d26c","x-request-id":"43eeaefc-6304-42db-add9-df3e2519d26c","msg":"Row not found"}
+{"level":40,"time":1795662492981,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"0820860d-add9-441b-9bee-841081a31375","x-request-id":"0820860d-add9-441b-9bee-841081a31375","msg":"Row not found"}
+  ✔ CA-8c | no se le puede cambiar el estado (96.42ms)
+{"level":40,"time":1795662493063,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"010e6d44-c75b-40de-9674-6ef0997c51b7","x-request-id":"010e6d44-c75b-40de-9674-6ef0997c51b7","msg":"Row not found"}
+{"level":40,"time":1795662493070,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"dc2f9a74-c765-4f21-92a7-95473a157dd1","x-request-id":"dc2f9a74-c765-4f21-92a7-95473a157dd1","msg":"Row not found"}
+{"level":40,"time":1795662493077,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"1c675096-3fa9-4bd7-a672-d05bd57bd456","x-request-id":"1c675096-3fa9-4bd7-a672-d05bd57bd456","msg":"Row not found"}
+  ✔ CA-8c | no se le puede cambiar la fecha (96.02ms)
+  ✔ CA-8c | para el resto del código la tarea borrada no existe (80.38ms)
+  ✔ CA-8c | una tarea borrada por la factory tampoco se ve (70.03ms)
+  ✔ CA-9 | borrar no es «marcar como hecha»: son dos caminos distintos (93.28ms)
+  ✔ CA-10 | sin sesión no se borra nada, ni se ve ni se restaura (73.54ms)
+{"level":40,"time":1795662493521,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"75fd9d1a-88ea-480e-8490-fb85b0900c9f","x-request-id":"75fd9d1a-88ea-480e-8490-fb85b0900c9f","msg":"Row not found"}
+  ✔ CA-11 | borrar dos veces dice que ya no existe y no es un fallo del sistema (130.48ms)
+{"level":40,"time":1795662493590,"pid":4036,"hostname":"DESKTOP-4OK6FB9","request_id":"d41aa1b3-fdb3-44a1-9272-6ac283c47073","x-request-id":"d41aa1b3-fdb3-44a1-9272-6ac283c47073","msg":"Row not found"}
+  ✔ CA-11 | borrar una tarea que no existe es el mismo «no existe» (63.63ms)
+ ERRORS 
+
+❯ Tasks | vencimiento / Fecha del día anterior
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to equal true[39m
+
+ ⁃ at Assert.strictEqual [33m(node_modules/@japa/assert/build/index.js:77:19)[39m
+ ⁃ at Object.executor [33m(tests/functional/tasks/overdue.spec.ts:82:12)[39m
+
+   [2m77[22m [2m┃[22m      [31mconst[0m token [34m=[0m [31mawait[0m [35msesion[0m(client)
+   [2m78[22m [2m┃[22m      [31mconst[0m id [34m=[0m [31mawait[0m [35mcrearTarea[0m(client[34m,[0m token[34m,[0m [33mAYER[0m)
+   [2m79[22m [2m┃[22m  
+   [2m80[22m [2m┃[22m      [31mconst[0m res [34m=[0m [31mawait[0m [35mleer[0m(client[34m,[0m token[34m,[0m id)
+   [2m81[22m [2m┃[22m  
+ [41m❯ 82 ┃      assert.strictEqual(res.body().data.isOverdue, true)[49m
+   [2m83[22m [2m┃[22m    })
+   [2m84[22m [2m┃[22m  
+   [2m85[22m [2m┃[22m    [35mtest[0m([32m'Vencer hoy todavía no es estar vencida'[0m[34m,[0m [31masync[0m ({ client[34m,[0m assert }) [31m=>[0m {
+   [2m86[22m [2m┃[22m      [31mconst[0m token [34m=[0m [31mawait[0m [35msesion[0m(client)
+   [2m87[22m [2m┃[22m      [31mconst[0m id [34m=[0m [31mawait[0m [35mcrearTarea[0m(client[34m,[0m token[34m,[0m [33mHOY[0m)
+
+[2m ⁃ at [3mprocess.processTicksAndRejections[23m ([3mnode:internal/process/task_queues:104:5[23m)[22m
+ ⁃ at async #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:4)[39m
+ ⁃ at async TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:4)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+ ⁃ at async SuiteRunner.run [33m(node_modules/@japa/core/build/index.js:1100:4)[39m
+ ⁃ at async Suite$1.exec [33m(node_modules/@japa/core/build/index.js:1175:3)[39m
+[1/3]─
+
+❯ Tasks | vencimiento / Darla por hecha la deja de vencer
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to equal true[39m
+
+ ⁃ at Assert.strictEqual [33m(node_modules/@japa/assert/build/index.js:77:19)[39m
+ ⁃ at Object.executor [33m(tests/functional/tasks/overdue.spec.ts:118:12)[39m
+
+   [2m113[22m [2m┃[22m    [35mtest[0m([32m'Darla por hecha la deja de vencer'[0m[34m,[0m [31masync[0m ({ client[34m,[0m assert }) [31m=>[0m {
+   [2m114[22m [2m┃[22m      [31mconst[0m token [34m=[0m [31mawait[0m [35msesion[0m(client)
+   [2m115[22m [2m┃[22m      [31mconst[0m id [34m=[0m [31mawait[0m [35mcrearTarea[0m(client[34m,[0m token[34m,[0m [33mAYER[0m)
+   [2m116[22m [2m┃[22m  
+   [2m117[22m [2m┃[22m      [31mconst[0m antes [34m=[0m [31mawait[0m [35mleer[0m(client[34m,[0m token[34m,[0m id)
+ [41m❯ 118 ┃      assert.strictEqual(antes.body().data.isOverdue, true)[49m
+   [2m119[22m [2m┃[22m  
+   [2m120[22m [2m┃[22m      [31mawait[0m [35mmarcarHecha[0m(client[34m,[0m token[34m,[0m id)
+   [2m121[22m [2m┃[22m  
+   [2m122[22m [2m┃[22m      [31mconst[0m despues [34m=[0m [31mawait[0m [35mleer[0m(client[34m,[0m token[34m,[0m id)
+   [2m123[22m [2m┃[22m      assert[34m.[0m[35mstrictEqual[0m(despues[34m.[0m[35mbody[0m()[34m.[0mdata[34m.[0misOverdue[34m,[0m [36mfalse[0m)
+
+[2m ⁃ at [3mprocess.processTicksAndRejections[23m ([3mnode:internal/process/task_queues:104:5[23m)[22m
+ ⁃ at async #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:4)[39m
+ ⁃ at async TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:4)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+ ⁃ at async SuiteRunner.run [33m(node_modules/@japa/core/build/index.js:1100:4)[39m
+ ⁃ at async Suite$1.exec [33m(node_modules/@japa/core/build/index.js:1175:3)[39m
+[2/3]─
+
+❯ Tasks | vencimiento / Aplazar resuelve el vencimiento
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to equal true[39m
+
+ ⁃ at Assert.strictEqual [33m(node_modules/@japa/assert/build/index.js:77:19)[39m
+ ⁃ at Object.executor [33m(tests/functional/tasks/overdue.spec.ts:144:12)[39m
+
+   [2m139[22m [2m┃[22m    [35mtest[0m([32m'Aplazar resuelve el vencimiento'[0m[34m,[0m [31masync[0m ({ client[34m,[0m assert }) [31m=>[0m {
+   [2m140[22m [2m┃[22m      [31mconst[0m token [34m=[0m [31mawait[0m [35msesion[0m(client)
+   [2m141[22m [2m┃[22m      [31mconst[0m id [34m=[0m [31mawait[0m [35mcrearTarea[0m(client[34m,[0m token[34m,[0m [33mAYER[0m)
+   [2m142[22m [2m┃[22m  
+   [2m143[22m [2m┃[22m      [31mconst[0m antes [34m=[0m [31mawait[0m [35mleer[0m(client[34m,[0m token[34m,[0m id)
+ [41m❯ 144 ┃      assert.strictEqual(antes.body().data.isOverdue, true)[49m
+   [2m145[22m [2m┃[22m  
+   [2m146[22m [2m┃[22m      [31mconst[0m aplazada [34m=[0m [31mawait[0m client
+   [2m147[22m [2m┃[22m        [34m.[0m[35mput[0m([32m`/api/v1/tasks/[0m[31m${[0mid[31m}[0m[32m/due-date`[0m)
+   [2m148[22m [2m┃[22m        [34m.[0m[35mheader[0m([32m'Authorization'[0m[34m,[0m [35mbearer[0m(token))
+   [2m149[22m [2m┃[22m        [34m.[0m[35mjson[0m({ dueDate[34m:[0m [33mMANANA[0m[34m,[0m today[34m:[0m [33mHOY[0m })
+
+[2m ⁃ at [3mprocess.processTicksAndRejections[23m ([3mnode:internal/process/task_queues:104:5[23m)[22m
+ ⁃ at async #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:4)[39m
+ ⁃ at async TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:4)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+ ⁃ at async SuiteRunner.run [33m(node_modules/@japa/core/build/index.js:1100:4)[39m
+ ⁃ at async Suite$1.exec [33m(node_modules/@japa/core/build/index.js:1175:3)[39m
+[3/3]─
+
+ FAILED 
+
+Tests  44 passed, 3 failed (47)
+ Time  4s
+make: *** [Makefile:124: test-e2e] Error 1
