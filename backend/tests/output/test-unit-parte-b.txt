@@ -1,0 +1,89 @@
+c[ info ] loading hooks...
+[ info ] generating indexes...
+[ info ] codegen: created 5 file(s)
+[ info ] booting application to run tests...
+
+unit / Task | isOverdueOn (tests/unit/task_is_overdue_on.spec.ts)
+  ✔ 1. fecha anterior al día de referencia, sin hacer → vencida (1.31ms)
+  ✔ 2. fecha igual al día de referencia → no vencida (0.22ms)
+  ✔ 3. fecha posterior → no vencida (0.14ms)
+  ✔ 4. sin fecha → no vencida (0.2ms)
+  ✖ 5. hecha y con la fecha pasada → no vencida (0.69ms)
+  ✔ 6a. fecha anterior llegando como texto → vencida (0.14ms)
+  ✖ 6b. fecha anterior llegando como Date, como la entrega pg → vencida (0.28ms)
+ ERRORS 
+
+❯ Task | isOverdueOn / 5. hecha y con la fecha pasada → no vencida
+
+- Expected  - 1
++ Received  + 1
+
+- false
++ true
+
+[31mℹ AssertionError: expected true to equal false[39m
+
+ ⁃ at Assert.strictEqual [33m(node_modules/@japa/assert/build/index.js:77:19)[39m
+ ⁃ at Object.executor [33m(tests/unit/task_is_overdue_on.spec.ts:42:12)[39m
+
+   [2m37[22m [2m┃[22m    [35mtest[0m([32m'4. sin fecha → no vencida'[0m[34m,[0m ({ assert }) [31m=>[0m {
+   [2m38[22m [2m┃[22m      assert[34m.[0m[35mstrictEqual[0m([35mtarea[0m({ dueDate[34m:[0m [33mnull[0m })[34m.[0m[35misOverdueOn[0m([33mHOY[0m)[34m,[0m [36mfalse[0m)
+   [2m39[22m [2m┃[22m    })
+   [2m40[22m [2m┃[22m  
+   [2m41[22m [2m┃[22m    [35mtest[0m([32m'5. hecha y con la fecha pasada → no vencida'[0m[34m,[0m ({ assert }) [31m=>[0m {
+ [41m❯ 42 ┃      assert.strictEqual(tarea({ dueDate: AYER, status: 'done' }).isOverdueOn(HOY), false)[49m
+   [2m43[22m [2m┃[22m    })
+   [2m44[22m [2m┃[22m  
+   [2m45[22m [2m┃[22m    [35mtest[0m([32m'6a. fecha anterior llegando como texto → vencida'[0m[34m,[0m ({ assert }) [31m=>[0m {
+   [2m46[22m [2m┃[22m      assert[34m.[0m[35mstrictEqual[0m([35mtarea[0m({ dueDate[34m:[0m [32m'2026-03-09'[0m })[34m.[0m[35misOverdueOn[0m([33mHOY[0m)[34m,[0m [36mtrue[0m)
+   [2m47[22m [2m┃[22m    })
+
+ ⁃ at #runTest [33m(node_modules/@japa/core/build/index.js:634:121)[39m
+ ⁃ at #wrapRegressionTest [33m(node_modules/@japa/core/build/index.js:670:118)[39m
+ ⁃ at #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:102)[39m
+ ⁃ at #wrapTestInRetries [33m(node_modules/@japa/core/build/index.js:686:66)[39m
+ ⁃ at TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:33)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+[1/2]─
+
+❯ Task | isOverdueOn / 6b. fecha anterior llegando como Date, como la entrega pg → vencida
+
+- Expected  - 1
++ Received  + 1
+
+- true
++ false
+
+[31mℹ AssertionError: expected false to equal true[39m
+
+ ⁃ at Assert.strictEqual [33m(node_modules/@japa/assert/build/index.js:77:19)[39m
+ ⁃ at Object.executor [33m(tests/unit/task_is_overdue_on.spec.ts:52:12)[39m
+
+   [2m45[22m [2m┃[22m    [35mtest[0m([32m'6a. fecha anterior llegando como texto → vencida'[0m[34m,[0m ({ assert }) [31m=>[0m {
+   [2m46[22m [2m┃[22m      assert[34m.[0m[35mstrictEqual[0m([35mtarea[0m({ dueDate[34m:[0m [32m'2026-03-09'[0m })[34m.[0m[35misOverdueOn[0m([33mHOY[0m)[34m,[0m [36mtrue[0m)
+   [2m47[22m [2m┃[22m    })
+   [2m48[22m [2m┃[22m  
+   [2m49[22m [2m┃[22m    [35mtest[0m([32m'6b. fecha anterior llegando como Date, como la entrega pg → vencida'[0m[34m,[0m ({ assert }) [31m=>[0m {
+   [2m50[22m [2m┃[22m      [90m// Medianoche UTC fija del 2026-03-09, para no depender del huso de la máquina.
+   [2m51[22m [2m┃[22m  [0m    [31mconst[0m deLaBase [34m=[0m [31mnew[0m [33mDate[0m([33mDate[0m[34m.[0m[33mUTC[0m([33m2026[0m[34m,[0m [33m2[0m[34m,[0m [33m9[0m))
+ [41m❯ 52 ┃      assert.strictEqual(tarea({ dueDate: deLaBase }).isOverdueOn(HOY), true)[49m
+   [2m53[22m [2m┃[22m    })
+   [2m54[22m [2m┃[22m  })
+   [2m55[22m [2m┃[22m  
+
+ ⁃ at #runTest [33m(node_modules/@japa/core/build/index.js:634:121)[39m
+ ⁃ at #wrapRegressionTest [33m(node_modules/@japa/core/build/index.js:670:118)[39m
+ ⁃ at #wrapTestInTimeout [33m(node_modules/@japa/core/build/index.js:680:102)[39m
+ ⁃ at #wrapTestInRetries [33m(node_modules/@japa/core/build/index.js:686:66)[39m
+ ⁃ at TestRunner.run [33m(node_modules/@japa/core/build/index.js:710:33)[39m
+ ⁃ at async Test$1.exec [33m(node_modules/@japa/core/build/index.js:918:3)[39m
+ ⁃ at async GroupRunner.run [33m(node_modules/@japa/core/build/index.js:259:4)[39m
+ ⁃ at async Group$1.exec [33m(node_modules/@japa/core/build/index.js:354:3)[39m
+[2/2]─
+
+ FAILED 
+
+Tests  5 passed, 2 failed (7)
+ Time  9ms
